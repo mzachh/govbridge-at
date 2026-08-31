@@ -79,6 +79,11 @@ imports, `eval`, `new Function`, or remotely hosted assets are allowed. The MV3
 content security policy shall remain at least as strict as Chrome's default and
 shall not enable unsafe evaluation.
 
+The extension-owned WebMCP dashboard uses `cross_origin_opener_policy:
+same-origin` and `cross_origin_embedder_policy: require-corp` so its document is
+origin-keyed and cannot use `document.domain`. Because all dashboard resources
+are local, this isolation adds no external resource dependency.
+
 ### OEGK-SEC-006 — Data minimization
 
 Only the canonical claim fields, minimal change events, and version metadata in

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>OEGK Claim Tracker – WebMCP</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="dashboard-page">
+    <main class="dashboard-shell">
+      <header class="dashboard-hero">
+        <div class="brand-lockup">
+          <span class="brand-mark" aria-hidden="true">O</span>
+          <div>
+            <p class="eyebrow">Hackathon demo · Manifest V3</p>
+            <h1>OEGK Claim Tracker</h1>
+          </div>
+        </div>
+        <p class="hero-copy">A private, read-only WebMCP layer for locally observed Meine SV reimbursement claims.</p>
+        <ul class="hero-badges" aria-label="Key properties">
+          <li>4 WebMCP tools</li>
+          <li>Local storage</li>
+          <li>No website writes</li>
+        </ul>
+      </header>
+
+      <section class="dashboard-panel runtime-panel" aria-labelledby="runtime-heading">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Live extension state</p>
+            <h2 id="runtime-heading">WebMCP runtime</h2>
+          </div>
+          <div class="runtime-state runtime-state--checking" id="runtime-state">
+            <span class="runtime-dot" aria-hidden="true"></span>
+            <span id="runtime-label">Checking</span>
+          </div>
+        </div>
+        <p class="runtime-message" id="webmcp-status" aria-live="polite">Checking <code>document.modelContext</code> and registering tools…</p>
+
+        <div class="metric-grid" aria-label="Local claim summary">
+          <article class="metric-card">
+            <span class="metric-label">Observed</span>
+            <strong id="claim-count">—</strong>
+            <span class="metric-note">local claims</span>
+          </article>
+          <article class="metric-card metric-card--open">
+            <span class="metric-label">Open</span>
+            <strong id="open-count">—</strong>
+            <span class="metric-note">submitted or processing</span>
+          </article>
+          <article class="metric-card metric-card--closed">
+            <span class="metric-label">Closed</span>
+            <strong id="closed-count">—</strong>
+            <span class="metric-note">completed or rejected</span>
+          </article>
+          <article class="metric-card metric-card--unknown">
+            <span class="metric-label">Unknown</span>
+            <strong id="unknown-count">—</strong>
+            <span class="metric-note">kept separate</span>
+          </article>
+        </div>
+        <p class="storage-status" id="storage-status" aria-live="polite">Loading aggregate counts from extension storage…</p>
+      </section>
+
+      <section class="tools-section" aria-labelledby="tools-heading">
+        <div class="section-heading section-heading--outside">
+          <div>
+            <p class="section-kicker">Exposed capability</p>
+            <h2 id="tools-heading">Registered WebMCP tools</h2>
+          </div>
+          <span class="read-only-badge">readOnlyHint: true</span>
+        </div>
+
+        <div class="tool-grid">
+          <article class="tool-card">
+            <div class="tool-card__top"><span class="method-badge">READ</span><code>list_claims</code></div>
+            <p>Lists every locally observed claim in deterministic order.</p>
+            <dl class="tool-contract">
+              <div><dt>Input</dt><dd><code>{}</code></dd></div>
+              <div><dt>Returns</dt><dd><code>{ claims, count }</code></dd></div>
+            </dl>
+          </article>
+
+          <article class="tool-card">
+            <div class="tool-card__top"><span class="method-badge">READ</span><code>get_open_claims</code></div>
+            <p>Filters claims whose status is <code>submitted</code> or <code>processing</code>.</p>
+            <dl class="tool-contract">
+              <div><dt>Input</dt><dd><code>{}</code></dd></div>
+              <div><dt>Returns</dt><dd><code>{ claims, count }</code></dd></div>
+            </dl>
+          </article>
+
+          <article class="tool-card">
+            <div class="tool-card__top"><span class="method-badge">READ</span><code>get_claim</code></div>
+            <p>Returns one claim using its stable, extension-generated canonical ID.</p>
+            <dl class="tool-contract">
+              <div><dt>Input</dt><dd><code>{ claimId: string }</code></dd></div>
+              <div><dt>Returns</dt><dd><code>{ claim }</code></dd></div>
+            </dl>
+          </article>
+
+          <article class="tool-card">
+            <div class="tool-card__top"><span class="method-badge">READ</span><code>get_reimbursement_summary</code></div>
+            <p>Summarizes known invoice and reimbursement amounts by invoice year.</p>
+            <dl class="tool-contract">
+              <div><dt>Input</dt><dd><code>{ year: integer, 2000…2100 }</code></dd></div>
+              <div><dt>Returns</dt><dd><code>{ year, claimCount, invoiceAmountKnownCount, reimbursementAmountKnownCount, invoiceTotal, reimbursedTotal, yearBasis, currency }</code></dd></div>
+            </dl>
+          </article>
+        </div>
+      </section>
+
+      <section class="dashboard-panel architecture-panel" aria-labelledby="architecture-heading">
+        <div>
+          <p class="section-kicker">Data boundary</p>
+          <h2 id="architecture-heading">Local-first by design</h2>
+          <p class="architecture-copy">The extension observes supported Meine SV pages, normalizes claim data locally, and exposes tools only from this extension-owned document.</p>
+        </div>
+        <ol class="data-flow" aria-label="Data flow">
+          <li><span>1</span><strong>Meine SV DOM</strong><small>read-only observation</small></li>
+          <li><span>2</span><strong>Chrome storage</strong><small>normalized local state</small></li>
+          <li><span>3</span><strong>WebMCP</strong><small>extension-owned tools</small></li>
+        </ol>
+        <p class="privacy-note"><strong>Privacy boundary:</strong> no analytics, remote backend, raw HTML export, or claim-mutating controls. This dashboard displays aggregate counts only.</p>
+      </section>
+    </main>
+    <script src="dashboard.js"></script>
+  </body>
+</html>

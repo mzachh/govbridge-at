@@ -43,6 +43,17 @@ When the API is absent, disabled, or registration rejects, the extension shall
 continue local extraction, tracking, storage, and popup behavior normally.
 Failure shall not be retried in an unbounded loop.
 
+The dedicated extension page shall opt into an origin-keyed agent cluster using
+MV3 `cross_origin_opener_policy: same-origin` and
+`cross_origin_embedder_policy: require-corp`. This is required by the tested
+Chrome WebMCP implementation, which rejects `registerTool` when
+`document.domain` remains enabled. All dashboard resources are extension-local.
+
+Each definition uses `annotations: { readOnlyHint: true }`. Tool execution
+returns the JSON envelope directly; milestone one does not declare an output
+schema because the current draft API has no output-schema member. The handler
+honors the execution cancellation signal where applicable.
+
 ### OEGK-WEBMCP-002 — Normalized-data boundary
 
 Every tool handler shall obtain validated canonical claims through a read-only

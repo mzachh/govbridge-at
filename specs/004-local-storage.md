@@ -54,6 +54,11 @@ interface StoredClaimState {
   claims: Claim[];
   events: ClaimStatusChangedEvent[];
   updatedAt: string;
+  metadata?: {
+    lastSnapshotAt: string;
+    lastExtractionState: "complete" | "empty";
+    lastObservedRange?: { from: string; to: string };
+  };
 }
 ```
 
@@ -85,8 +90,9 @@ it until a documented migration or explicit user reset exists.
 
 ### OEGK-STORAGE-007 — Data minimization
 
-Only canonical claims, minimal status-change events, and schema timestamps may
-be persisted. Diagnostics and raw extraction material remain ephemeral.
+Only canonical claims, minimal status-change events, schema timestamps, and the
+closed count-free snapshot metadata above may be persisted. Diagnostics and raw
+extraction material remain ephemeral.
 
 ### OEGK-STORAGE-008 — Retention boundary
 

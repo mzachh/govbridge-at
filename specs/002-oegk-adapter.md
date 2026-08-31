@@ -15,10 +15,26 @@ The adapter implements this contract:
 ```ts
 type ExtractionState = "complete" | "empty" | "loading" | "unsupported" | "error";
 
+interface ClaimObservation {
+  provider?: string;
+  treatmentDate?: string;
+  treatmentEndDate?: string;
+  invoiceDate?: string;
+  submittedDate?: string;
+  reimbursementDate?: string;
+  invoiceAmount?: number;
+  reimbursementAmount?: number;
+  status: Claim["status"];
+  responseAvailable?: boolean;
+  source: "oegk";
+  transientSourceId?: string;
+}
+
 interface ClaimExtractionResult {
   state: ExtractionState;
-  pageKind: "type-range" | "results" | "open-rejected-detail" | "reimbursed-detail";
-  claims: Claim[];
+  pageKind?: "type-range" | "results" | "open-rejected-detail" | "reimbursed-detail";
+  snapshotComplete: boolean;
+  observations: ClaimObservation[];
   observedRange?: { from: string; to: string };
   diagnostics: { candidateCount: number; skippedCount: number };
 }
@@ -35,6 +51,10 @@ Implementation starts against anonymized fixtures that reproduce the confirmed
 structure below. Live activation may follow only after those fixtures and
 acceptance tests pass. All OEGK-specific selectors, label maps, and extraction
 rules belong inside the adapter module.
+
+The tracker, not the adapter, assigns canonical `id` and `lastSeen`. The optional
+`transientSourceId` is consumed only during reconciliation and is never persisted
+or exposed. See `009-implementation-decisions.md`.
 
 ## Non-goals
 
@@ -239,7 +259,7 @@ the following stable-looking classes:
 | `.cb_title > h4` | Provider, sometimes empty | `provider` when non-empty |
 | `.cb_title` text matching `Rechnung vom DD.MM.YYYY` | Invoice date | `invoiceDate` |
 | `.cb_status .badge.error` under rejected heading | `abgelehnt` | `rejected` |
-| `.cb_status .badge` under reimbursed heading | `Rückerstattung: <amount> €` | `completed`, `reimbursementAmount` |
+| `.cb_status .badge` under reimbursed heading | `Rückerstattung: [optional ↪] <amount> €` (case-insensitive presentation) | `completed`, `reimbursementAmount` |
 | `.cb_details a` | User-operated JSF detail navigation | No field; never click automatically |
 | `.cb_download a` | User-operated `_blank` JSF PDF action | Does not prove `responseAvailable` |
 

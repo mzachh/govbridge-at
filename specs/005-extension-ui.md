@@ -18,7 +18,7 @@ verified data and fixture/demo data.
 - Editing or submitting claims.
 - Opening or parsing response PDFs.
 - Reproducing the Meine OEGK visual design.
-- Notifications, charts, exports, advanced filtering, or a full-page dashboard.
+- Notifications, charts, exports, advanced filtering, or a full-page claim-management dashboard.
 - Showing raw DOM data or technical debug output to ordinary users.
 
 ## Functional requirements
@@ -115,6 +115,24 @@ focus, meet WCAG 2.1 AA text contrast, not rely on color alone for status, and
 fit a practical Chrome popup width without horizontal scrolling. The root HTML
 language is German (`de`).
 
+### OEGK-UI-010 — Hackathon WebMCP dashboard
+
+The extension-owned WebMCP page shall provide a presentation-ready technical
+overview without becoming a second claim-management interface. It shall show:
+
+- the live WebMCP registration state with a textual label, not color alone;
+- the exact registered tool names, descriptions, input shapes, and concise
+  return shapes;
+- the `readOnlyHint: true` annotation shared by all tools;
+- aggregate local counts for observed, open, closed, and unknown claims, without
+  rendering providers, dates, amounts, claim IDs, or other medical details; and
+- the architectural boundary from read-only host-page observation through
+  validated local storage to extension-owned WebMCP registration.
+
+The dashboard shall use English presentation copy for the international
+hackathon audience. Dynamic values shall be inserted as text, and the page shall
+load no remote assets.
+
 ## Data contracts
 
 The UI receives canonical `Claim[]`, storage/extraction state, and derived
@@ -171,6 +189,9 @@ analytics, or expose data to the host page. Claim values are rendered as text.
 - **AC-OEGK-UI-007** (`OEGK-UI-009`): Keyboard and automated accessibility checks
   verify semantic labeling, focus visibility, no color-only status, contrast,
   and no horizontal scrolling at the target popup width.
+- **AC-OEGK-UI-008** (`OEGK-UI-010`): The technical dashboard exposes all four
+  exact tool names and contracts, reports ready/unsupported/rejected WebMCP
+  states distinctly, and renders only aggregate claim counts.
 
 ## Open questions
 
