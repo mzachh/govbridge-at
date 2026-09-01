@@ -1,5 +1,9 @@
 # Read-only WebMCP Tools
 
+These four query contracts remain unchanged. The additional page-scoped
+`search_claims` action is specified in `011-govbridge-at-skill.md`; blanket
+read-only guarantees below apply to the four queries, not that action.
+
 ## Purpose
 
 Define an optional WebMCP surface that lets a browser agent query locally
@@ -279,8 +283,9 @@ WebMCP results contain sensitive personal, medical, and financial data. Proxy
 tools register in the OEGK MAIN world and never an explicit third-party origin.
 The PoC does not authenticate the page-world channel: OEGK page scripts can
 observe or race messages. The dashboard and privacy notice must explain this
-accepted boundary and that a browser agent may read invoked tool results. No
-write-capable tool is allowed.
+accepted boundary and that a browser agent may read invoked tool results. The
+only action-capable tool is the bounded search defined in
+`011-govbridge-at-skill.md`; it submits no reimbursement application.
 
 ## Acceptance criteria
 

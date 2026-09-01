@@ -19,20 +19,15 @@ if (JSON.stringify(manifest.permissions) !== JSON.stringify(["storage"])) throw 
 if ("host_permissions" in manifest || "optional_host_permissions" in manifest || "web_accessible_resources" in manifest) throw new Error("Forbidden manifest capability");
 const main = manifest.content_scripts?.find((entry) => entry.world === "MAIN");
 const relay = manifest.content_scripts?.find((entry) => entry.js?.includes("content-bridge.js"));
-const exactMatches = [
-  "https://www.meinesv.at/vsInfo/views/KE/einreichungTyp.xhtml",
-  "https://www.meinesv.at/vsInfo/views/KE/einreichungListe.xhtml",
-  "https://www.meinesv.at/vsInfo/views/KE/einreichungDetailOA.xhtml",
-  "https://www.meinesv.at/vsInfo/views/KE/einreichungDetail.xhtml",
-];
+const bridgeMatches = ["https://www.meinesv.at/vsInfo/views/KE/*"];
 if (!main || JSON.stringify(main.js) !== JSON.stringify(["webmcp-main.js"]) ||
     main.world !== "MAIN" || main.run_at !== "document_start" || main.all_frames !== false ||
     !relay || JSON.stringify(relay.js) !== JSON.stringify(["content-bridge.js"]) ||
     relay.world !== "ISOLATED" || relay.run_at !== "document_start" || relay.all_frames !== false) {
   throw new Error("WebMCP bridge manifest drift");
 }
-if (JSON.stringify(main.matches) !== JSON.stringify(exactMatches) ||
-    JSON.stringify(relay.matches) !== JSON.stringify(exactMatches)) {
+if (JSON.stringify(main.matches) !== JSON.stringify(bridgeMatches) ||
+    JSON.stringify(relay.matches) !== JSON.stringify(bridgeMatches)) {
   throw new Error("WebMCP bridge scope drift");
 }
 

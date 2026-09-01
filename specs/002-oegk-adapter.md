@@ -231,9 +231,10 @@ generated, implementation shall anchor to the unique POST form containing:
 - placeholder `TT.MM.JJJJ`; and
 - submit control value `Weiter` (observed generated ID suffix `:search`).
 
-The extension shall never click the tab, fill dates, submit `Weiter`, submit
-`OK`, or clear the form. The user performs the query; the extension only reads
-the resulting DOM.
+The extractor shall never click the tab, fill dates, submit `Weiter`, submit
+`OK`, or clear the form. A separate ISOLATED action executor may fill these
+two fields and click `Weiter` only under `011-govbridge-at-skill.md`.
+The Codex skill handles tab selection; the extractor reads the resulting DOM.
 
 Confirmed non-list outcomes are:
 

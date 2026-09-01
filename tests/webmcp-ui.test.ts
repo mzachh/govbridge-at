@@ -226,7 +226,7 @@ describe("safe German popup rendering", () => {
     document.body.innerHTML = "<main id='app'></main>";
     const root = document.querySelector<HTMLElement>("#app")!;
     renderPopup(root, { state: "ready", claims, hasObserved: true, demo: true, stale: true });
-    expect(root.textContent).toContain("OEGK Claim Tracker");
+    expect(root.textContent).toContain("GovBridge AT");
     expect(root.textContent).toContain("3 Einreichungen · 1 offen · 1 Status unbekannt");
     expect(root.textContent).toContain("OFFEN");
     expect(root.textContent).toContain("STATUS UNBEKANNT");
@@ -276,12 +276,15 @@ describe("hackathon WebMCP dashboard", () => {
     const html = readFileSync(resolve(process.cwd(), "dashboard.html"), "utf8");
     const page = new DOMParser().parseFromString(html, "text/html");
     expect(Array.from(page.querySelectorAll(".tool-card__top code"), (node) => node.textContent)).toEqual([
+      "search_claims",
       "list_claims",
       "get_open_claims",
       "get_claim",
       "get_reimbursement_summary",
     ]);
-    expect(page.querySelector(".read-only-badge")?.textContent).toBe("readOnlyHint: true");
+    expect(page.querySelector(".read-only-badge")?.textContent).toBe("4 queries: readOnlyHint: true");
+    expect(page.body.textContent).toContain("readOnlyHint: false");
+    expect(page.body.textContent).toContain("submission_requested");
     expect(page.body.textContent).toContain("document.modelContext");
     expect(page.body.textContent).toContain("Chrome storage");
     expect(page.body.textContent).toContain("MAIN-world proxy tools");

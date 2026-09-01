@@ -1,10 +1,14 @@
-# OEGK Claim Tracker: Product Scope
+# GovBridge AT: Product Scope
 
 ## Purpose
 
-Define the first milestone for **OEGK Claim Tracker**, a local-only, read-only
+Define the first milestone for **GovBridge AT**, a local
 Chrome extension prototype that helps a user understand which submitted medical
 invoice claims are still being processed in Meine OEGK.
+
+OEGK is the first supported service. The package and skill use `govbridge-at`.
+Spec `011-govbridge-at-skill.md` adds the bounded `search_claims` form action
+and guided Codex workflow; claim queries and extraction remain read-only.
 
 ## Scope
 
@@ -16,7 +20,7 @@ The first milestone covers:
 - normalization into the canonical `Claim` model;
 - local persistence and comparison with earlier observations;
 - a minimal popup/dashboard for claim status and yearly totals;
-- a read-only WebMCP tool surface when the browser exposes WebMCP; and
+- four read-only WebMCP queries and one query/results-page search action; and
 - fixture-based development from the authenticated DOM baseline documented on
   2026-08-30 in `002-oegk-adapter.md`.
 
@@ -34,9 +38,8 @@ The primary question the product answers is:
 - OCR, document upload, a backend, cloud synchronization, telemetry, analytics,
   or external AI services.
 - Providing medical, legal, or tax advice.
-- Automatically selecting a claim type, entering a date range, submitting the
-  query, navigating to details, or opening PDFs. The user performs those
-  read-only site interactions; the extension observes supported pages.
+- Automatically navigating to details or opening PDFs. The Codex skill may
+  select the claim type, then invoke the extension's bounded search action.
 - Claiming universal production support from one confirmed account/session
   observation.
 
@@ -112,7 +115,8 @@ Storage     UI      WebMCP
 ## Security/privacy considerations
 
 The complete constraints are in `007-security-privacy.md`. The extension is
-read-only, has no backend, uses no remote code, does not collect credentials or
+read-only for claim data, permits only the documented search form action,
+has no backend, uses no remote code, does not collect credentials or
 authentication artifacts, and requests only the minimum OEGK host access needed
 for the confirmed claims page.
 

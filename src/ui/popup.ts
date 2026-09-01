@@ -167,7 +167,7 @@ export function renderPopup(root: HTMLElement, model: PopupViewModel): void {
 
   const claims = model.claims ?? [];
   root.replaceChildren();
-  root.append(element(document, "h1", "OEGK Claim Tracker"));
+  root.append(element(document, "h1", "GovBridge AT"));
   if (model.demo) root.append(element(document, "p", "Demo data"));
   if (model.stale) root.append(element(document, "p", "Gespeicherte Daten – möglicherweise nicht aktuell"));
   if (model.hasObserved === false) {

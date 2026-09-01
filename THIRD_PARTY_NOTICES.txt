@@ -1,4 +1,4 @@
-OEGK Claim Tracker includes bundled code from these MIT-licensed packages:
+GovBridge AT includes bundled code from these MIT-licensed packages:
 
 - @mcp-b/webmcp-polyfill 4.0.0, Copyright (c) 2025 mcp-b contributors
 - @mcp-b/webmcp-types 4.0.0, Copyright (c) 2025 mcp-b contributors

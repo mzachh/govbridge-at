@@ -62,9 +62,9 @@ interface StoredClaimState {
 }
 ```
 
-The storage key shall be versioned and OEGK-prefixed, for example
-`oegkClaimTracker.state.v1`. Technical identifiers use `OEGK`/`oegk`, never the
-umlaut spelling.
+The storage key remains `oegkClaimTracker.state.v1` as a legacy compatibility
+identifier after the GovBridge AT rename. No storage migration or clearing is
+required. OEGK remains the service identifier, never the umlaut spelling.
 
 ### OEGK-STORAGE-004 — Atomic snapshot replacement
 

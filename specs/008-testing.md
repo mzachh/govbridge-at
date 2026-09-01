@@ -1,5 +1,16 @@
 # Testing and Verification
 
+## GovBridge AT search action addition
+
+The additional action contract is normative in `011-govbridge-at-skill.md`.
+Verify date and form preflight rejection without mutation, single dispatch,
+navigation uncertainty, and five-versus-four page-scoped registration (five on
+query/results routes, four elsewhere). The
+four existing queries retain their read-only tests. Live search verification
+may submit only the recognized Wahlarzt date query after user login; it must
+record structural evidence only. Skill review must cover scoped consent,
+missing capabilities, and stored versus fresh-result uncertainty.
+
 ## Purpose
 
 Define how automated and manual evidence will prove that implementation matches

@@ -17,7 +17,7 @@ if (runtimeState) runtimeState.className = "runtime-state runtime-state--ready";
 if (runtimeLabel) runtimeLabel.textContent = "Bridge packaged";
 if (status) {
   status.textContent =
-    "The MAIN-world WebMcpBridge registers four tools on supported OEGK pages using native document.modelContext or its local fallback.";
+    "The MAIN-world WebMcpBridge registers four read-only query tools on supported OEGK pages, plus search_claims on the query/results routes, using native document.modelContext or its local fallback.";
 }
 
 const repository = {

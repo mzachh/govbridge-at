@@ -10,6 +10,9 @@ import {
 } from "../src/webmcp/protocol.js";
 import { disposeOnFinalPageHide, startWebMcpBridge } from "../src/webmcp/runtime.js";
 import type { WebMcpToolDefinition } from "../src/webmcp/types.js";
+import { pageToolCatalog, SEARCH_ENTRY_PATH, SEARCH_PAGE_PATH, SEARCH_RESULTS_PATH } from "../src/webmcp/catalog.js";
+import { registerPageTools } from "../src/webmcp/registrar.js";
+import { parseExtensionRequest } from "../src/entries/messages.js";
 import {
   AGENT_HINT_ATTRIBUTE,
   agentHintText,
@@ -31,6 +34,16 @@ afterEach(() => {
 });
 
 describe("OEGK-BRIDGE-004 closed protocol", () => {
+  it("allows the search only on the page bridge and preserves the storage-query worker boundary", () => {
+    const request = createBridgeRequest("search", "search_claims", { from: "2026-01-01", to: "2026-09-01" });
+    expect(parseBridgeRequest(request)).toEqual(request);
+    expect(parseBridgeRequest({ ...request, input: { from: "2026-02-30", to: "2026-09-01" } })).toBeUndefined();
+    expect(parseExtensionRequest({ type: "webmcp.execute", tool: "search_claims", input: request.input })).toBeUndefined();
+    for (const code of ["INVALID_INPUT", "UNSUPPORTED_PAGE", "FORM_UNAVAILABLE", "SEARCH_IN_PROGRESS", "INTERNAL_ERROR"] as const) {
+      expect(parseBridgeResponse(createBridgeResponse("search", { ok: false, error: { code, message: "Redacted." } })))
+        .toBeDefined();
+    }
+  });
   it("accepts only exact, versioned, allowlisted requests and ToolResult responses", () => {
     const request = createBridgeRequest("request-1", "get_claim", { claimId: "synthetic-id" });
     expect(parseBridgeRequest(request)).toEqual(request);
@@ -66,6 +79,18 @@ describe("OEGK-BRIDGE-004 closed protocol", () => {
 });
 
 describe("OEGK-BRIDGE-003 semantic agent hint", () => {
+  it("uses the same page-scoped catalog for hint count and registration names", () => {
+    document.body.innerHTML = "<main>Only synthetic structure</main>";
+    const url = `https://www.meinesv.at${SEARCH_PAGE_PATH}`;
+    const remove = installAgentHint(document, url);
+    const hint = document.querySelector(`[${AGENT_HINT_ATTRIBUTE}]`)!;
+    for (const { name } of pageToolCatalog(url)) expect(hint.textContent).toContain(name);
+    expect(hint.textContent).toContain("search_claims (not read-only)");
+    expect(hint.textContent).toContain("does not confirm search success");
+    expect(hint.textContent).toContain("Hints alone do not prove callability");
+    expect(document.documentElement.getAttribute("data-oegk-webmcp-tool-count")).toBe("5");
+    remove();
+  });
   it("publishes only static tool metadata and removes it with the document lifecycle", () => {
     document.body.innerHTML = "<main>Visible OEGK page</main>";
     const remove = installAgentHint(document);
@@ -134,6 +159,36 @@ describe("OEGK-BRIDGE-004 isolated content relay", () => {
 });
 
 describe("OEGK-BRIDGE-006 MAIN page client", () => {
+  it("does not send a pre-cancelled search or retry a dispatched search after timeout", async () => {
+    vi.useFakeTimers();
+    const postMessage = vi.spyOn(window, "postMessage").mockImplementation(() => undefined);
+    const client = createPageBridgeClient(window, 50, () => "one-search");
+    const controller = new AbortController();
+    controller.abort();
+    await expect(client.execute("search_claims", { from: "2026-01-01", to: "2026-01-01" }, { signal: controller.signal }))
+      .rejects.toMatchObject({ name: "AbortError" });
+    expect(postMessage).not.toHaveBeenCalled();
+    const result = client.execute("search_claims", { from: "2026-01-01", to: "2026-01-01" });
+    const timedOut = expect(result).rejects.toThrow("timed out");
+    await vi.advanceTimersByTimeAsync(51);
+    await timedOut;
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(postMessage).toHaveBeenCalledOnce();
+    client.dispose();
+  });
+
+  it("cancellation after dispatch only cancels waiting; it sends no undo or retry", async () => {
+    const postMessage = vi.spyOn(window, "postMessage").mockImplementation(() => undefined);
+    const client = createPageBridgeClient(window, 1_000, () => "cancel-search");
+    const controller = new AbortController();
+    const result = client.execute("search_claims", { from: "2026-01-01", to: "2026-01-01" }, { signal: controller.signal });
+    controller.abort();
+    await expect(result).rejects.toMatchObject({ name: "AbortError" });
+    expect(postMessage).toHaveBeenCalledOnce();
+    window.dispatchEvent(message(createBridgeResponse("cancel-search", { ok: true, data: { status: "submission_requested" } })));
+    expect(postMessage).toHaveBeenCalledOnce();
+    client.dispose();
+  });
   it("correlates concurrent out-of-order responses", async () => {
     const outbound: unknown[] = [];
     vi.spyOn(window, "postMessage").mockImplementation((data) => { outbound.push(data); });
@@ -185,6 +240,68 @@ describe("OEGK-BRIDGE-006 document lifecycle", () => {
 });
 
 describe("OEGK-BRIDGE-001 native-first runtime", () => {
+  it.each(["native", "polyfill"])("registers five tools on the type route with %s runtime", async (runtime) => {
+    const definitions: WebMcpToolDefinition[] = [];
+    const context = { async registerTool(tool: WebMcpToolDefinition) { definitions.push(tool); } };
+    const pageDocument: { modelContext?: typeof context } = runtime === "native" ? { modelContext: context } : {};
+    const fakeWindow = {
+      location: new URL(`https://www.meinesv.at${SEARCH_PAGE_PATH}`),
+      addEventListener: vi.fn(), removeEventListener: vi.fn(),
+    } as unknown as Window;
+    const fallback = vi.fn(async () => { pageDocument.modelContext = context; });
+    const result = await startWebMcpBridge(pageDocument, fakeWindow, fallback);
+    expect(result.available && result.runtime).toBe(runtime);
+    expect(definitions.map(({ name }) => name)).toEqual(pageToolCatalog(fakeWindow.location.href).map(({ name }) => name));
+    expect(definitions.map(({ annotations }) => annotations.readOnlyHint)).toEqual([true, true, true, true, false]);
+    expect(fallback).toHaveBeenCalledTimes(runtime === "native" ? 0 : 1);
+    if (result.available) result.dispose();
+  });
+
+  it("registers search_claims on the MeineSV entry URL", async () => {
+    const definitions: WebMcpToolDefinition[] = [];
+    const context = { async registerTool(tool: WebMcpToolDefinition) { definitions.push(tool); } };
+    const entryWindow = {
+      location: new URL(`https://www.meinesv.at${SEARCH_ENTRY_PATH}?contentid=10007.815943`),
+      addEventListener: vi.fn(), removeEventListener: vi.fn(), postMessage: vi.fn(),
+      setTimeout, clearTimeout,
+    } as unknown as Window;
+    const pageDocument = { modelContext: context };
+    const result = await startWebMcpBridge(pageDocument, entryWindow, async () => undefined);
+    expect(result.available).toBe(true);
+    expect(definitions.map(({ name }) => name)).toContain("search_claims");
+    if (result.available) result.dispose();
+  });
+
+  it("registers search_claims on the MeineSV results URL", async () => {
+    const definitions: WebMcpToolDefinition[] = [];
+    const context = { async registerTool(tool: WebMcpToolDefinition) { definitions.push(tool); } };
+    const resultsWindow = {
+      location: new URL(`https://www.meinesv.at${SEARCH_RESULTS_PATH}`),
+      addEventListener: vi.fn(), removeEventListener: vi.fn(), postMessage: vi.fn(),
+      setTimeout, clearTimeout,
+    } as unknown as Window;
+    const pageDocument = { modelContext: context };
+    const result = await startWebMcpBridge(pageDocument, resultsWindow, async () => undefined);
+    expect(result.available).toBe(true);
+    const search = definitions.find(({ name }) => name === "search_claims");
+    expect(search).toMatchObject({ annotations: { readOnlyHint: false } });
+    if (result.available) result.dispose();
+  });
+
+  it("validates search dates before proxy invocation and passes cancellation to the page client", async () => {
+    const definitions: WebMcpToolDefinition[] = [];
+    const pageDocument = { modelContext: { async registerTool(tool: WebMcpToolDefinition) { definitions.push(tool); } } };
+    const execute = vi.fn(async () => ({ ok: true, data: { status: "submission_requested" } }));
+    const result = await registerPageTools(pageDocument, execute, `https://www.meinesv.at${SEARCH_PAGE_PATH}`);
+    const search = definitions.find(({ name }) => name === "search_claims")!;
+    expect(await search.execute({ from: "2020-02-29", to: "2025-03-01" })).toMatchObject({ error: { code: "INVALID_INPUT" } });
+    expect(execute).not.toHaveBeenCalled();
+    const controller = new AbortController();
+    const input = { from: "2020-02-29", to: "2025-02-28" };
+    await search.execute(input, { signal: controller.signal });
+    expect(execute).toHaveBeenCalledWith("search_claims", input, { signal: controller.signal });
+    if (result.available) result.dispose();
+  });
   it("uses native WebMCP without loading the compatibility runtime", async () => {
     const definitions: WebMcpToolDefinition[] = [];
     const signals: AbortSignal[] = [];

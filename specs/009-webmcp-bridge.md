@@ -1,5 +1,9 @@
 # WebMCP Bridge
 
+The GovBridge AT extension adds one narrowly scoped form action under
+`011-govbridge-at-skill.md`. The four existing storage-query contracts remain
+unchanged; the search action is executed in ISOLATED rather than the service worker.
+
 ## Purpose
 
 Define the smallest refactor that publishes the existing read-only OEGK claim
@@ -13,7 +17,7 @@ tool contracts.
 Supported OEGK page
   MAIN world: WebMcpBridge + native WebMCP or local compatibility fallback
        <-> closed request/response protocol
-  ISOLATED world: Content Bridge
+  ISOLATED world: Content Bridge -> bounded search executor (query form only)
        <-> chrome.runtime messaging
   service worker: existing storage + existing read-only tool handlers
 ```
@@ -40,7 +44,11 @@ storage, popup, and dashboard behavior shall continue normally.
 ### OEGK-BRIDGE-002 — Exact page scope
 
 The MAIN entry and isolated relay shall run only in the top frame on the four
-supported HTTPS paths under `https://www.meinesv.at`:
+supported HTTPS paths and the exact OEGK entry path under
+`https://www.meinesv.at`:
+
+- `/vsInfo/views/KE/?contentid=10007.815943` (optional site context query
+  parameters may be present)
 
 - `/vsInfo/views/KE/einreichungTyp.xhtml`
 - `/vsInfo/views/KE/einreichungListe.xhtml`
@@ -57,6 +65,13 @@ The MAIN world shall register exactly `list_claims`, `get_open_claims`,
 input schemas, direct JSON envelopes, and `annotations.readOnlyHint: true`
 defined in `006-webmcp-tools.md`. Definitions are static. Execution delegates
 to the existing background handlers and never parses or refreshes the page.
+On the entry/type-range and results routes, the static `search_claims` definition
+from `011-govbridge-at-skill.md` is registered in addition to those four queries.
+Its executor remains form-scoped: invocation on a results document without the
+selected retained date form returns `FORM_UNAVAILABLE` without mutation. When
+the results form is present, it validates `vonDat`/`bisDat` and the same-origin
+`OK` submitter before dispatching once; the type form continues to require the
+selected Wahlarzt / Wahltherapeut tab and `Weiter` submitter.
 
 ### OEGK-BRIDGE-004 — Closed page protocol
 
@@ -70,7 +85,7 @@ constant protocol identifier and version. A request contains exactly:
   direction: "request";
   requestId: string;
   tool: "list_claims" | "get_open_claims" | "get_claim" |
-        "get_reimbursement_summary";
+        "get_reimbursement_summary" | "search_claims";
   input: object;
 }
 ```
@@ -93,7 +108,8 @@ The static `data-oegk-webmcp-build` marker may identify the local PoC build so
 live verification can distinguish an outdated unpacked extension.
 
 After successful registration, the MAIN entry shall add one visually hidden
-semantic note that lists the four static tool names and explains how a compatible
+semantic note that lists the route's tool names (five on the query and results
+routes, four elsewhere), distinguishes the search action, and explains how a compatible
 agent can use `document.modelContext.getTools()` and `executeTool(...)`. The note
 must contain no claim data, inputs, outputs, identifiers, runtime errors, or
 credentials; it must not change visible layout or accept interaction. It is
@@ -123,7 +139,8 @@ dispatched, read-only bridge request.
 MAIN-world code and cross-world messages are visible to scripts executing on
 the matched OEGK origin. Request IDs provide correlation, not authentication;
 the host page could observe or race bridge traffic. This accepted prototype
-boundary is limited by exact origin/path checks, read-only tools, strict
+boundary is limited by exact origin/path checks, four read-only queries,
+one validated type-page search action, strict
 schemas, per-call disclosure, and the absence of privileged operations. It must
 be disclosed in `PRIVACY.md` and must not be described as isolation from OEGK.
 

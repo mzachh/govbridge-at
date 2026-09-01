@@ -20,7 +20,7 @@ async function loadCompatibilityRuntime(): Promise<void> {
 }
 
 if (isSupportedMeineSvUrl(window.location.href)) {
-  publishBridgeStatus("data-oegk-webmcp-build", "hint-v1");
+  publishBridgeStatus("data-oegk-webmcp-build", "govbridge-search-v1");
   publishBridgeStatus("data-oegk-webmcp-bridge", "starting");
   void startWebMcpBridge(
     document as Document & WebMcpDocumentLike,

@@ -1,20 +1,21 @@
-import { CLAIM_TOOL_CATALOG } from "./catalog.js";
+import { CLAIM_TOOL_CATALOG, isSearchToolUrl, pageToolCatalog } from "./catalog.js";
 
 export const AGENT_HINT_ATTRIBUTE = "data-oegk-webmcp-agent-hint";
 
-export function agentHintText(): string {
+export function agentHintText(rawUrl?: string): string {
   const names = CLAIM_TOOL_CATALOG.map(({ name }) => name).join(", ");
   return [
     "WEBMCP AVAILABLE ON THIS PAGE.",
     `Registered read-only OEGK tools: ${names}.`,
+    ...(isSearchToolUrl(rawUrl) ? ["Also registered: search_claims (not read-only) on the query and results routes; it executes only when the selected Wahlarzt / Wahltherapeut form is present. It returns no claims; submission_requested does not confirm search success or storage freshness. Navigation may return null or destroy execution. Never automatically retry an uncertain submission; cancellation cannot undo a dispatched click."] : []),
     "Prefer these structured tools over scraping claim details from the page.",
     "If WebMCP actions are not listed directly, access document.modelContext from the page's MAIN JavaScript world.",
     "Call document.modelContext.getTools(), inspect each inputSchema, then call document.modelContext.executeTool(toolObject, JSON.stringify(input)).",
-    "Use the tool object returned by getTools(). These tools query normalized local extension storage and never modify OEGK data.",
+    "Use the tool object returned by getTools(). The four read-only tools query normalized local extension storage. list_claims includes all stored observations, not only the requested period. Obtain consent before exposing sensitive results. Hints alone do not prove callability.",
   ].join(" ");
 }
 
-export function installAgentHint(pageDocument: Document): () => void {
+export function installAgentHint(pageDocument: Document, rawUrl = pageDocument.URL): () => void {
   let disposed = false;
   let ownedHint: HTMLElement | undefined;
 
@@ -23,7 +24,7 @@ export function installAgentHint(pageDocument: Document): () => void {
     const hint = pageDocument.createElement("div");
     hint.setAttribute(AGENT_HINT_ATTRIBUTE, "");
     hint.setAttribute("role", "note");
-    hint.setAttribute("aria-label", "OEGK WebMCP agent integration metadata");
+    hint.setAttribute("aria-label", "GovBridge AT WebMCP agent integration metadata");
     hint.style.cssText = [
       "all:initial!important",
       "position:fixed!important",
@@ -36,13 +37,13 @@ export function installAgentHint(pageDocument: Document): () => void {
       "white-space:nowrap!important",
       "pointer-events:none!important",
     ].join(";");
-    hint.textContent = agentHintText();
+    hint.textContent = agentHintText(rawUrl);
     (pageDocument.body || pageDocument.documentElement)?.append(hint);
     ownedHint = hint;
     pageDocument.documentElement?.setAttribute("data-oegk-webmcp-tools-available", "true");
     pageDocument.documentElement?.setAttribute(
       "data-oegk-webmcp-tool-count",
-      String(CLAIM_TOOL_CATALOG.length),
+      String(pageToolCatalog(rawUrl).length),
     );
   };
 

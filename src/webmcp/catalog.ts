@@ -48,6 +48,86 @@ export const CLAIM_TOOL_CATALOG = Object.freeze([
 
 export type ClaimToolName = (typeof CLAIM_TOOL_CATALOG)[number]["name"];
 
+export const SEARCH_PAGE_PATH = "/vsInfo/views/KE/einreichungTyp.xhtml";
+export const SEARCH_ENTRY_PATH = "/vsInfo/views/KE/";
+export const SEARCH_RESULTS_PATH = "/vsInfo/views/KE/einreichungListe.xhtml";
+const SEARCH_CONTENT_ID = "10007.815943";
+export const SEARCH_TOOL = Object.freeze({
+  name: "search_claims",
+  description: "Request a Wahlarzt / Wahltherapeut search on MeineSV for inclusive ISO dates, at most five calendar years. Registered on query and results routes; execution requires the validated query form or retained results-range form. Submits the current form once; does not return claims or confirm success. Navigation may return null or destroy execution. Never automatically retry an uncertain submission; cancellation cannot undo a dispatched click.",
+  inputSchema: Object.freeze({
+    type: "object",
+    required: Object.freeze(["from", "to"]),
+    properties: Object.freeze({
+      from: Object.freeze({ type: "string", format: "date", pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }),
+      to: Object.freeze({ type: "string", format: "date", pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }),
+    }),
+    additionalProperties: false,
+  }),
+} as const);
+
+export const PAGE_TOOL_CATALOG = Object.freeze([...CLAIM_TOOL_CATALOG, SEARCH_TOOL]);
+export type PageToolName = (typeof PAGE_TOOL_CATALOG)[number]["name"];
+
+export function isSearchPageUrl(rawUrl: string | undefined): boolean {
+  try {
+    const url = new URL(rawUrl ?? "");
+    return url.origin === "https://www.meinesv.at" &&
+      (url.pathname === SEARCH_PAGE_PATH ||
+        (url.pathname === SEARCH_ENTRY_PATH && url.searchParams.get("contentid") === SEARCH_CONTENT_ID));
+  } catch {
+    return false;
+  }
+}
+
+export function isSearchResultsUrl(rawUrl: string | undefined): boolean {
+  try {
+    const url = new URL(rawUrl ?? "");
+    return url.origin === "https://www.meinesv.at" && url.pathname === SEARCH_RESULTS_PATH;
+  } catch {
+    return false;
+  }
+}
+
+/** Routes where the search action is discoverable; execution remains form-scoped. */
+export function isSearchToolUrl(rawUrl: string | undefined): boolean {
+  return isSearchPageUrl(rawUrl) || isSearchResultsUrl(rawUrl);
+}
+
+/** One shared source for registration and discovery metadata. */
+export function pageToolCatalog(rawUrl?: string): readonly (typeof PAGE_TOOL_CATALOG)[number][] {
+  return isSearchToolUrl(rawUrl) ? PAGE_TOOL_CATALOG : CLAIM_TOOL_CATALOG;
+}
+
+export function isPageToolName(value: unknown): value is PageToolName {
+  return value === "search_claims" || isClaimToolName(value);
+}
+
+function daysInMonth(year: number, month: number): number {
+  if (month === 2) return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28;
+  return [4, 6, 9, 11].includes(month) ? 30 : 31;
+}
+
+function calendarDate(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number) as [number, number, number];
+  return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= daysInMonth(year, month);
+}
+
+export function isValidSearchInput(input: unknown): input is { from: string; to: string } {
+  if (!isExactObject(input, ["from", "to"]) || !calendarDate(input.from) || !calendarDate(input.to)) return false;
+  const [year, month, day] = input.from.split("-").map(Number) as [number, number, number];
+  // Compare numeric calendar components, including anniversaries after year 9999.
+  const lastDay = Math.min(day, daysInMonth(year + 5, month));
+  const [toYear, toMonth, toDay] = input.to.split("-").map(Number) as [number, number, number];
+  return input.from <= input.to &&
+    toYear * 10000 + toMonth * 100 + toDay <= (year + 5) * 10000 + month * 100 + lastDay;
+}
+
+export function isValidPageToolInput(tool: PageToolName, input: unknown): input is Record<string, unknown> {
+  return tool === "search_claims" ? isValidSearchInput(input) : isValidClaimToolInput(tool, input);
+}
+
 const CLAIM_TOOL_NAMES = new Set<string>(CLAIM_TOOL_CATALOG.map(({ name }) => name));
 
 export function isClaimToolName(value: unknown): value is ClaimToolName {

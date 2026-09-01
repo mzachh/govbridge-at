@@ -3,24 +3,24 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>OEGK Claim Tracker – WebMCP</title>
+    <title>GovBridge AT – WebMCP</title>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body class="dashboard-page">
     <main class="dashboard-shell">
       <header class="dashboard-hero">
         <div class="brand-lockup">
-          <span class="brand-mark" aria-hidden="true">O</span>
+          <span class="brand-mark" aria-hidden="true">G</span>
           <div>
             <p class="eyebrow">Hackathon demo · Manifest V3</p>
-            <h1>OEGK Claim Tracker</h1>
+            <h1>GovBridge AT</h1>
           </div>
         </div>
-        <p class="hero-copy">A private, read-only WebMCP layer for locally observed Meine SV reimbursement claims.</p>
+        <p class="hero-copy">A WebMCP bridge for Austrian government services. First service: OEGK claim search and local tracking in Meine SV.</p>
         <ul class="hero-badges" aria-label="Key properties">
-          <li>4 WebMCP tools</li>
+          <li>4 query tools + 1 search action</li>
           <li>Local storage</li>
-          <li>No website writes</li>
+          <li>No claim submissions</li>
         </ul>
       </header>
 
@@ -68,10 +68,19 @@
             <p class="section-kicker">Exposed capability</p>
             <h2 id="tools-heading">OEGK WebMCP tools</h2>
           </div>
-          <span class="read-only-badge">readOnlyHint: true</span>
+          <span class="read-only-badge">4 queries: readOnlyHint: true</span>
         </div>
 
         <div class="tool-grid">
+          <article class="tool-card">
+            <div class="tool-card__top"><span class="method-badge">ACTION</span><code>search_claims</code></div>
+            <p>Fills and submits the selected Wahlarzt / Wahltherapeut search form. Discoverable on the type/range and results pages; executable only when the selected form is present.</p>
+            <dl class="tool-contract">
+              <div><dt>Input</dt><dd><code>{ from: "YYYY-MM-DD", to: "YYYY-MM-DD" }</code> · at most five years</dd></div>
+              <div><dt>Returns</dt><dd><code>{ status: "submission_requested" }</code> or navigation interrupts the call</dd></div>
+              <div><dt>Annotation</dt><dd><code>readOnlyHint: false</code></dd></div>
+            </dl>
+          </article>
           <article class="tool-card">
             <div class="tool-card__top"><span class="method-badge">READ</span><code>list_claims</code></div>
             <p>Lists every locally observed claim in deterministic order.</p>
@@ -119,10 +128,11 @@
         <ol class="data-flow" aria-label="Data flow">
           <li><span>1</span><strong>Meine SV DOM</strong><small>read-only observation</small></li>
           <li><span>2</span><strong>Chrome storage</strong><small>normalized local state</small></li>
-          <li><span>3</span><strong>Content Bridge</strong><small>closed read-only RPC</small></li>
+          <li><span>3</span><strong>Content Bridge</strong><small>closed tool protocol</small></li>
           <li><span>4</span><strong>WebMCP</strong><small>MAIN-world proxy tools</small></li>
         </ol>
-        <p class="privacy-note"><strong>PoC boundary:</strong> OEGK page scripts can observe or race MAIN-world bridge traffic. The bridge carries only one normalized, read-only tool result per invocation—never credentials, cookies, raw HTML, PDFs, or storage internals. This dashboard displays aggregate counts only.</p>
+        <p class="architecture-copy">The four query tools use <code>readOnlyHint: true</code> and read stored observations. The search action is discoverable on the type/range and results pages, runs in the isolated page context, and clicks only the validated date-range form's <code>Weiter</code> control when present. Its acknowledgement does not confirm fresh results.</p>
+        <p class="privacy-note"><strong>PoC boundary:</strong> OEGK page scripts can observe or race bridge traffic and invoke the bounded search action. Only normalized query results or search inputs/acknowledgements cross—never credentials, cookies, raw HTML, PDFs, or storage internals. This dashboard displays aggregate counts only. Stored observations may predate the current search.</p>
       </section>
     </main>
     <script src="dashboard.js"></script>

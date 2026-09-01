@@ -1,7 +1,7 @@
 import {
-  isClaimToolName,
-  isValidClaimToolInput,
-  type ClaimToolName,
+  isPageToolName,
+  isValidPageToolInput,
+  type PageToolName,
 } from "./catalog.js";
 import type { ToolResult } from "./types.js";
 
@@ -16,7 +16,7 @@ export interface WebMcpBridgeRequest {
   version: typeof WEBMCP_BRIDGE_VERSION;
   direction: "request";
   requestId: string;
-  tool: ClaimToolName;
+  tool: PageToolName;
   input: Record<string, unknown>;
 }
 
@@ -67,7 +67,7 @@ export function isToolResult(value: unknown): value is ToolResult<unknown> {
   }
   if (!onlyKeys(value, ["ok", "error"]) || !record(value.error) ||
       !onlyKeys(value.error, ["code", "message"])) return false;
-  return new Set(["INVALID_INPUT", "NOT_FOUND", "STORAGE_UNAVAILABLE", "INTERNAL_ERROR"]).has(
+  return new Set(["INVALID_INPUT", "NOT_FOUND", "STORAGE_UNAVAILABLE", "INTERNAL_ERROR", "UNSUPPORTED_PAGE", "FORM_UNAVAILABLE", "SEARCH_IN_PROGRESS"]).has(
     String(value.error.code),
   ) && typeof value.error.message === "string" && value.error.message.length <= 256 && withinFrameLimit(value);
 }
@@ -78,7 +78,7 @@ export function parseBridgeRequest(value: unknown): WebMcpBridgeRequest | undefi
   }
   if (value.protocol !== WEBMCP_BRIDGE_PROTOCOL || value.version !== WEBMCP_BRIDGE_VERSION ||
       value.direction !== "request" || !validRequestId(value.requestId) ||
-      !isClaimToolName(value.tool) || !isValidClaimToolInput(value.tool, value.input) ||
+      !isPageToolName(value.tool) || !isValidPageToolInput(value.tool, value.input) ||
       !withinFrameLimit(value)) return undefined;
   return value as unknown as WebMcpBridgeRequest;
 }
@@ -95,7 +95,7 @@ export function parseBridgeResponse(value: unknown): WebMcpBridgeResponse | unde
 
 export function createBridgeRequest(
   requestId: string,
-  tool: ClaimToolName,
+  tool: PageToolName,
   input: Record<string, unknown>,
 ): WebMcpBridgeRequest {
   return {

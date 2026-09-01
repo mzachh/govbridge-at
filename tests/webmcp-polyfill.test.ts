@@ -14,6 +14,21 @@ interface PolyfillContext {
 afterEach(() => cleanupWebMCPPolyfill());
 
 describe("OEGK-BRIDGE-001 packaged compatibility runtime", () => {
+  it("exposes the five-tool search-page catalog and executes its action proxy", async () => {
+    cleanupWebMCPPolyfill();
+    initializeWebMCPPolyfill({ installTestingShim: false });
+    const pageDocument = document as Document & WebMcpDocumentLike & { modelContext: PolyfillContext };
+    const execute = vi.fn(async () => ({ ok: true, data: { status: "submission_requested" } }));
+    const registration = await registerPageTools(pageDocument, execute, "https://www.meinesv.at/vsInfo/views/KE/einreichungTyp.xhtml");
+    const tools = await pageDocument.modelContext.getTools();
+    expect(tools).toHaveLength(5);
+    const search = tools.find(({ name }) => name === "search_claims")!;
+    const input = { from: "2020-02-29", to: "2025-02-28" };
+    const serialized = await pageDocument.modelContext.executeTool(search, JSON.stringify(input));
+    expect(JSON.parse(String(serialized))).toEqual({ ok: true, data: { status: "submission_requested" } });
+    expect(execute).toHaveBeenCalledWith("search_claims", input);
+    if (registration.available) registration.dispose();
+  });
   it("installs locally, exposes the four contracts, executes a proxy, and cleans up", async () => {
     cleanupWebMCPPolyfill();
     initializeWebMCPPolyfill({ installTestingShim: false });

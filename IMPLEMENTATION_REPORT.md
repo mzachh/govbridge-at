@@ -1,4 +1,45 @@
-# OEGK Claim Tracker — Milestone-one Implementation Report
+# GovBridge AT — Implementation Report
+
+## GovBridge AT update
+
+- Renamed product and package while retaining OEGK provenance, the legacy
+  storage key/protocol/diagnostic markers, and the existing dist installation.
+- Added the query/results-route `search_claims` action: validated ISO dates,
+  selected-form preflight, native value events, a single Weiter click, and
+  redacted dispatch acknowledgement. Four stored-claim queries stay read-only.
+- Added bounded observer rearming for possible same-document result updates.
+- Updated dashboard, hints, specs, and privacy disclosures for the search action.
+- Created and installed the `govbridge-at` skill with external Chrome navigation,
+  user-operated login, native/CDP capability discovery, consent and conservative
+  stored-data interpretation. Independent scenario review corrected stored-only
+  requests so they do not initiate a website search.
+- Skill frontmatter and UI metadata passed Ruby YAML validation; installed
+  copies match repository sources. The bundled Python validator could not run
+  because PyYAML is unavailable in the installed Python runtimes.
+- Current automated verification: TypeScript, 136 tests, production build,
+  and package audit passed. Independent review found and corrected the
+  observation deadline cancelling the final queued extraction; a regression
+  test now proves that the pending observation is flushed after the cutoff.
+- Live query-form inspection confirmed selected tab `aria-selected="true"`,
+  the documented date controls, POST action, and unique Weiter control. No
+  claim values were captured.
+- After the user reloaded the extension, live external Chrome verified the
+  `govbridge-search-v1` marker, five registered tools, and `readOnlyHint: false`
+  only for search_claims. A tool call using the plan's example dates returned
+  `submission_requested`. A Page.frameNavigated event confirmed full navigation
+  back to the type/range page with a recognized empty-result alert, no validation
+  error, the expected formatted dates, the selected Wahlarzt tab, and both
+  bridges ready. No claim-data tool was invoked in this verification.
+- The live-tested search path used full-document navigation. Same-document
+  rearming and deadline flushing are covered by synthetic tests, not live
+  evidence. Final dist includes the subsequently tested deadline fix.
+- A type-page empty alert is a website outcome, not a committed empty store
+  snapshot under the existing adapter. The skill documents this distinction.
+
+## Historical milestone evidence
+
+The sections below describe the earlier four-query-tool implementation before
+the search action. Counts and capability observations are historical.
 
 ## Implemented
 

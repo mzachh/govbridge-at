@@ -29,7 +29,8 @@ export async function startWebMcpBridge(
   const client = createPageBridgeClient(pageWindow);
   const registration: RegistrationResult = await registerPageTools(
     pageDocument,
-    (tool, input) => client.execute(tool, input),
+    (tool, input, options) => client.execute(tool, input, options),
+    pageWindow.location.href,
   );
   if (!registration.available) {
     client.dispose();

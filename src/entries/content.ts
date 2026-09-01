@@ -1,8 +1,9 @@
 import { OegkAdapter } from "../adapter/oegk.js";
+import { createObservationWindow } from "../adapter/observation-window.js";
+import { onSearchDispatched } from "../actions/search-observation.js";
+import { disposeOnFinalPageHide } from "../webmcp/runtime.js";
 
 let lastResult = "";
-let pending: number | undefined;
-const stopAt = Date.now() + 15_000;
 
 async function observeVisiblePage(): Promise<void> {
   const adapter = new OegkAdapter();
@@ -14,15 +15,10 @@ async function observeVisiblePage(): Promise<void> {
   await chrome.runtime.sendMessage({ type: "claims.observe", result }).catch(() => undefined);
 }
 
-void observeVisiblePage();
-
-const observer = new MutationObserver(() => {
-  if (Date.now() >= stopAt) {
-    observer.disconnect();
-    return;
-  }
-  if (pending !== undefined) window.clearTimeout(pending);
-  pending = window.setTimeout(() => void observeVisiblePage(), 250);
+const observation = createObservationWindow(document, observeVisiblePage);
+observation.rearm();
+const removeSearchListener = onSearchDispatched(document, () => observation.rearm());
+disposeOnFinalPageHide(window, () => {
+  removeSearchListener();
+  observation.dispose();
 });
-observer.observe(document.documentElement, { childList: true, subtree: true });
-window.setTimeout(() => observer.disconnect(), 15_000);

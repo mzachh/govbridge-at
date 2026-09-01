@@ -37,9 +37,11 @@ requests.
 
 ### OEGK-SEC-002 — Read-only behavior
 
-The extension shall only read already-rendered information from a confirmed
-claims page. It shall not click, submit, edit, upload, download, acknowledge,
-approve, reject, withdraw, navigate, or call OEGK application endpoints.
+The extractor and four claim-query tools only read supported claim data.
+The sole form-action exception is `search_claims`, defined in
+`011-govbridge-at-skill.md`: it fills the validated Wahlarzt dates and clicks
+Weiter. It may navigate through the website's own search form. No claim
+creation, editing, upload, approval, withdrawal, or PDF action is permitted.
 
 ### OEGK-SEC-003 — Authentication boundary
 
@@ -116,12 +118,15 @@ redacted diagnostics. It shall make no network request and persist no page data.
 
 ### OEGK-SEC-010 — WebMCP privacy boundary
 
-WebMCP tools are read-only, operate on normalized storage, and shall not use
-third-party `exposedTo` origins. Static proxy definitions register in the Meine
+The four query tools are read-only and operate on normalized storage. The
+additional `search_claims` action is discoverable on the isolated query and
+results routes, but executes only when the validated search form is present.
+No tool shall use third-party `exposedTo` origins. Static proxy definitions register in the Meine
 SV MAIN world; storage and handlers remain extension-owned. The PoC explicitly
 accepts that scripts on the matched OEGK origin can observe or race page-world
 bridge messages. This is documented rather than represented as an authenticated
-or isolated channel. Tool errors and descriptions shall not leak data. WebMCP
+or isolated channel. Page scripts can also invoke the bounded search action;
+skill consent is not an extension-enforced access gate. Tool errors and descriptions shall not leak data. WebMCP
 unavailability must not cause fallback transmission or DOM scraping.
 
 ### OEGK-SEC-011 — Dependency and build hygiene

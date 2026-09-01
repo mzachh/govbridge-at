@@ -3,11 +3,11 @@ import {
   parseBridgeResponse,
   WEBMCP_REQUEST_TIMEOUT_MS,
 } from "./protocol.js";
-import type { ClaimToolName } from "./catalog.js";
+import type { PageToolName } from "./catalog.js";
 
 export interface PageBridgeClient {
   execute(
-    tool: ClaimToolName,
+    tool: PageToolName,
     input: Record<string, unknown>,
     options?: { signal?: AbortSignal },
   ): Promise<unknown>;

@@ -1,4 +1,4 @@
-import { CLAIM_TOOL_CATALOG, isValidClaimToolInput, type ClaimToolName } from "./catalog.js";
+import { pageToolCatalog, isValidPageToolInput, type PageToolName } from "./catalog.js";
 import type { WebMcpDocumentLike, WebMcpToolDefinition } from "./types.js";
 
 export type RegistrationResult =
@@ -8,13 +8,15 @@ export type RegistrationResult =
 const registrations = new WeakMap<object, AbortController>();
 
 export type ToolExecutor = (
-  tool: ClaimToolName,
+  tool: PageToolName,
   input: Record<string, unknown>,
+  options?: { signal?: AbortSignal },
 ) => Promise<unknown>;
 
 export async function registerPageTools(
   pageDocument: WebMcpDocumentLike,
   execute: ToolExecutor,
+  rawUrl?: string,
 ): Promise<RegistrationResult> {
   const context = pageDocument.modelContext;
   if (!context || typeof context.registerTool !== "function") {
@@ -29,18 +31,19 @@ export async function registerPageTools(
 
   const controller = new AbortController();
   try {
-    for (const tool of CLAIM_TOOL_CATALOG) {
+    for (const tool of pageToolCatalog(rawUrl)) {
       const definition: WebMcpToolDefinition = {
         ...tool,
         // The compatibility runtime annotates schemas during validation.
         // Keep the canonical catalog frozen and give each registration a detached copy.
         inputSchema: structuredClone(tool.inputSchema),
-        annotations: { readOnlyHint: true },
-        execute: async (input) => {
-          if (!isValidClaimToolInput(tool.name, input)) {
+        annotations: { readOnlyHint: tool.name !== "search_claims" },
+        execute: async (input, options) => {
+          if (!isValidPageToolInput(tool.name, input)) {
             return { ok: false, error: { code: "INVALID_INPUT", message: "Invalid input." } };
           }
-          return execute(tool.name, input as Record<string, unknown>);
+          return options?.signal ? execute(tool.name, input as Record<string, unknown>, { signal: options.signal })
+            : execute(tool.name, input as Record<string, unknown>);
         },
       };
       await context.registerTool(definition, { signal: controller.signal });

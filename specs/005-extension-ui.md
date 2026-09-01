@@ -25,7 +25,7 @@ verified data and fixture/demo data.
 
 ### OEGK-UI-001 — Header summary
 
-The popup shall show the title `OEGK Claim Tracker`, total locally stored claim
+The popup shall show the title `GovBridge AT`, total locally stored claim
 count, and open count. Open count includes only `submitted` and `processing`.
 When any `unknown` claims exist, their count is shown separately and is not
 silently included in open or completed totals.
@@ -123,7 +123,8 @@ overview without becoming a second claim-management interface. It shall show:
 - whether the WebMCP bridge is packaged, with a textual label, not color alone;
 - the exact registered tool names, descriptions, input shapes, and concise
   return shapes;
-- the `readOnlyHint: true` annotation shared by all tools;
+- the `readOnlyHint: true` annotation for the four query tools and
+  `readOnlyHint: false` for the query/results-route `search_claims` action;
 - aggregate local counts for observed, open, closed, and unknown claims, without
   rendering providers, dates, amounts, claim IDs, or other medical details; and
 - the architecture from isolated host-page observation through validated local
@@ -143,7 +144,7 @@ or parse source labels.
 Example content, not a pixel-level design contract:
 
 ```text
-OEGK Claim Tracker
+GovBridge AT
 3 claims · 1 open
 
 Dr. Mueller

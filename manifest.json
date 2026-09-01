@@ -1,23 +1,20 @@
 {
   "manifest_version": 3,
-  "name": "OEGK Claim Tracker",
+  "name": "GovBridge AT",
   "version": "0.1.0",
-  "description": "Locally tracks claims the user views in Meine SV.",
+  "description": "WebMCP bridge for Austrian government services. OEGK claim search and local tracking are the first supported workflow.",
   "permissions": ["storage"],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "OEGK Claim Tracker",
+    "default_title": "GovBridge AT",
     "default_popup": "popup.html"
   },
   "content_scripts": [
     {
       "matches": [
-        "https://www.meinesv.at/vsInfo/views/KE/einreichungTyp.xhtml",
-        "https://www.meinesv.at/vsInfo/views/KE/einreichungListe.xhtml",
-        "https://www.meinesv.at/vsInfo/views/KE/einreichungDetailOA.xhtml",
-        "https://www.meinesv.at/vsInfo/views/KE/einreichungDetail.xhtml"
+        "https://www.meinesv.at/vsInfo/views/KE/*"
       ],
       "js": ["webmcp-main.js"],
       "run_at": "document_start",
@@ -26,10 +23,7 @@
     },
     {
       "matches": [
-        "https://www.meinesv.at/vsInfo/views/KE/einreichungTyp.xhtml",
-        "https://www.meinesv.at/vsInfo/views/KE/einreichungListe.xhtml",
-        "https://www.meinesv.at/vsInfo/views/KE/einreichungDetailOA.xhtml",
-        "https://www.meinesv.at/vsInfo/views/KE/einreichungDetail.xhtml"
+        "https://www.meinesv.at/vsInfo/views/KE/*"
       ],
       "js": ["content-bridge.js"],
       "run_at": "document_start",

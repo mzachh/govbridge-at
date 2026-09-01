@@ -1,3 +1,5 @@
+import { isSearchPageUrl } from "./catalog.js";
+
 const SUPPORTED_PATHS = new Set([
   "/vsInfo/views/KE/einreichungTyp.xhtml",
   "/vsInfo/views/KE/einreichungListe.xhtml",
@@ -9,7 +11,8 @@ export function isSupportedMeineSvUrl(rawUrl: string | undefined): boolean {
   if (!rawUrl) return false;
   try {
     const url = new URL(rawUrl);
-    return url.origin === "https://www.meinesv.at" && SUPPORTED_PATHS.has(url.pathname);
+    return url.origin === "https://www.meinesv.at" &&
+      (SUPPORTED_PATHS.has(url.pathname) || isSearchPageUrl(url.toString()));
   } catch {
     return false;
   }

@@ -8,6 +8,9 @@ export type ToolErrorCode =
   | "INVALID_INPUT"
   | "NOT_FOUND"
   | "STORAGE_UNAVAILABLE"
+  | "UNSUPPORTED_PAGE"
+  | "FORM_UNAVAILABLE"
+  | "SEARCH_IN_PROGRESS"
   | "INTERNAL_ERROR";
 
 export type ToolResult<T> =
@@ -18,7 +21,7 @@ export interface WebMcpToolDefinition {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
-  annotations: { readOnlyHint: true };
+  annotations: { readOnlyHint: boolean };
   execute(input: object, options?: { signal?: AbortSignal }): Promise<unknown>;
 }
 
