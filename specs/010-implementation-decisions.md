@@ -68,7 +68,10 @@ Only these closed requests are accepted by the service worker:
 - `{ type: "claims.observe", result: ClaimExtractionResult }` from the exact
   Meine SV origin and supported path;
 - `{ type: "claims.read" }` from extension-owned pages;
-- `{ type: "dashboard.open" }` from the popup.
+- `{ type: "dashboard.open" }` from the popup; and
+- `{ type: "webmcp.execute", tool, input }` from the extension's isolated
+  top-frame relay on an exact supported Meine SV page, with an allowlisted tool
+  name and tool-specific closed input.
 
 Responses are `{ ok: true, data }` or a redacted `{ ok: false, error }`.
 Unknown types, extra top-level properties, invalid payloads, and invalid senders
@@ -104,17 +107,16 @@ on the live results page; the others are fixture-backed compatibility formats.
 
 ## WebMCP lifecycle
 
-The four tool handlers are complete and context-independent. Registration is
-attempted only in a dedicated, user-opened extension dashboard tab, using
-`document.modelContext.registerTool` when present, static definitions,
-`annotations.readOnlyHint: true`, direct JSON envelopes, execution cancellation,
-and a document-lifetime `AbortController`. There is no `exposedTo` option.
+The four tool handlers remain complete and context-independent in the service
+worker. Static proxy definitions register in the MAIN world of supported OEGK
+pages through native `document.modelContext` or the pinned local compatibility
+runtime. Registration uses `annotations.readOnlyHint: true`, direct JSON
+envelopes, cancellation, and a document-lifetime `AbortController`. The
+isolated relay and background service use the closed protocol in
+`009-webmcp-bridge.md`; there is no `exposedTo` option or generic window API.
 
-No tool is registered from a content script or the Meine SV main world. Current
-standards and browser documentation do not guarantee that browser agents can
-discover tools from a `chrome-extension://` document, so discovery in the exact
-target browser remains an empirical compatibility gate rather than a guaranteed
-milestone property.
+The dashboard documents this architecture but no longer registers tools. Exact
+agent discovery in the target browser remains a manual compatibility check.
 
 ## Live activation
 

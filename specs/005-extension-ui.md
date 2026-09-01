@@ -117,17 +117,18 @@ language is German (`de`).
 
 ### OEGK-UI-010 — Hackathon WebMCP dashboard
 
-The extension-owned WebMCP page shall provide a presentation-ready technical
+The extension-owned dashboard shall provide a presentation-ready technical
 overview without becoming a second claim-management interface. It shall show:
 
-- the live WebMCP registration state with a textual label, not color alone;
+- whether the WebMCP bridge is packaged, with a textual label, not color alone;
 - the exact registered tool names, descriptions, input shapes, and concise
   return shapes;
 - the `readOnlyHint: true` annotation shared by all tools;
 - aggregate local counts for observed, open, closed, and unknown claims, without
   rendering providers, dates, amounts, claim IDs, or other medical details; and
-- the architectural boundary from read-only host-page observation through
-  validated local storage to extension-owned WebMCP registration.
+- the architecture from isolated host-page observation through validated local
+  storage and the Content Bridge to MAIN-world WebMCP proxy registration; and
+- the accepted PoC visibility/race limitation of the page-world channel.
 
 The dashboard shall use English presentation copy for the international
 hackathon audience. Dynamic values shall be inserted as text, and the page shall
@@ -190,8 +191,8 @@ analytics, or expose data to the host page. Claim values are rendered as text.
   verify semantic labeling, focus visibility, no color-only status, contrast,
   and no horizontal scrolling at the target popup width.
 - **AC-OEGK-UI-008** (`OEGK-UI-010`): The technical dashboard exposes all four
-  exact tool names and contracts, reports ready/unsupported/rejected WebMCP
-  states distinctly, and renders only aggregate claim counts.
+  exact tool names and contracts, explains the packaged bridge and PoC boundary,
+  and renders only aggregate claim counts.
 
 ## Open questions
 

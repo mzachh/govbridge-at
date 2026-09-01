@@ -8,11 +8,15 @@ import {
   type ClaimPageKind,
   type ExtractionState,
 } from "../domain/claim.js";
+import { isClaimToolName, isValidClaimToolInput, type ClaimToolName } from "../webmcp/catalog.js";
+import { isSupportedMeineSvUrl } from "../webmcp/scope.js";
+export { isSupportedMeineSvUrl } from "../webmcp/scope.js";
 
 export type ExtensionRequest =
   | { type: "claims.observe"; result: ClaimExtractionResult }
   | { type: "claims.read" }
-  | { type: "dashboard.open" };
+  | { type: "dashboard.open" }
+  | { type: "webmcp.execute"; tool: ClaimToolName; input: Record<string, unknown> };
 
 const STATES = new Set<ExtractionState>(["complete", "empty", "loading", "unsupported", "error"]);
 const PAGE_KINDS = new Set<ClaimPageKind>(["type-range", "results", "open-rejected-detail", "reimbursed-detail"]);
@@ -71,20 +75,16 @@ export function parseExtensionRequest(value: unknown): ExtensionRequest | undefi
   if (value.type === "claims.observe" && Object.keys(value).length === 2 && validExtractionResult(value.result)) {
     return value as unknown as ExtensionRequest;
   }
+  if (value.type === "webmcp.execute" && Object.keys(value).length === 3 &&
+      isClaimToolName(value.tool) && isValidClaimToolInput(value.tool, value.input)) {
+    return value as unknown as ExtensionRequest;
+  }
   return undefined;
 }
 
-export function isSupportedMeineSvUrl(rawUrl: string | undefined): boolean {
-  if (!rawUrl) return false;
-  try {
-    const url = new URL(rawUrl);
-    return url.origin === "https://www.meinesv.at" && new Set([
-      "/vsInfo/views/KE/einreichungTyp.xhtml",
-      "/vsInfo/views/KE/einreichungListe.xhtml",
-      "/vsInfo/views/KE/einreichungDetailOA.xhtml",
-      "/vsInfo/views/KE/einreichungDetail.xhtml",
-    ]).has(url.pathname);
-  } catch {
-    return false;
-  }
+export function isValidWebMcpSender(
+  sender: Pick<chrome.runtime.MessageSender, "id" | "url" | "frameId">,
+  extensionId: string,
+): boolean {
+  return sender.id === extensionId && sender.frameId === 0 && isSupportedMeineSvUrl(sender.url);
 }

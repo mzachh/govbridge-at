@@ -1,5 +1,5 @@
-import { createReadOnlyClaimTools } from "./handlers.js";
-import type { ClaimRepository, WebMcpDocumentLike, WebMcpToolDefinition } from "./types.js";
+import { CLAIM_TOOL_CATALOG, isValidClaimToolInput, type ClaimToolName } from "./catalog.js";
+import type { WebMcpDocumentLike, WebMcpToolDefinition } from "./types.js";
 
 export type RegistrationResult =
   | { available: false; reason: "unsupported" | "rejected" }
@@ -7,20 +7,21 @@ export type RegistrationResult =
 
 const registrations = new WeakMap<object, AbortController>();
 
-/**
- * Registers tools only on the explicitly supplied extension-owned document.
- * Callers must never pass a host-page document or a content-script bridge.
- */
-export async function registerExtensionPageTools(
-  extensionDocument: WebMcpDocumentLike,
-  repository: ClaimRepository,
+export type ToolExecutor = (
+  tool: ClaimToolName,
+  input: Record<string, unknown>,
+) => Promise<unknown>;
+
+export async function registerPageTools(
+  pageDocument: WebMcpDocumentLike,
+  execute: ToolExecutor,
 ): Promise<RegistrationResult> {
-  const context = extensionDocument.modelContext;
+  const context = pageDocument.modelContext;
   if (!context || typeof context.registerTool !== "function") {
     return { available: false, reason: "unsupported" };
   }
 
-  const owner = extensionDocument as object;
+  const owner = pageDocument as object;
   const existing = registrations.get(owner);
   if (existing && !existing.signal.aborted) {
     return { available: true, dispose: () => existing.abort() };
@@ -28,13 +29,18 @@ export async function registerExtensionPageTools(
 
   const controller = new AbortController();
   try {
-    for (const tool of createReadOnlyClaimTools(repository)) {
+    for (const tool of CLAIM_TOOL_CATALOG) {
       const definition: WebMcpToolDefinition = {
         ...tool,
+        // The compatibility runtime annotates schemas during validation.
+        // Keep the canonical catalog frozen and give each registration a detached copy.
+        inputSchema: structuredClone(tool.inputSchema),
         annotations: { readOnlyHint: true },
-        execute: async (input, options) => {
-          if (options?.signal?.aborted) throw new DOMException("Operation aborted.", "AbortError");
-          return tool.execute(input);
+        execute: async (input) => {
+          if (!isValidClaimToolInput(tool.name, input)) {
+            return { ok: false, error: { code: "INVALID_INPUT", message: "Invalid input." } };
+          }
+          return execute(tool.name, input as Record<string, unknown>);
         },
       };
       await context.registerTool(definition, { signal: controller.signal });

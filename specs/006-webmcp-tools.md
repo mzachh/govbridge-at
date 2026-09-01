@@ -32,22 +32,15 @@ is tracked at <https://github.com/webmachinelearning/webmcp>.
 
 ### OEGK-WEBMCP-001 — Capability-gated registration
 
-When `document.modelContext?.registerTool` is callable in an extension-owned
-document (preferably a dedicated extension dashboard; popup lifetime may be too
-short), the extension may register the four specified tools. Registration on
-the Meine SV document is prohibited unless a later security review proves that
-an isolated-world registration cannot expose normalized claims or handlers to
-page scripts. A main-world bridge carrying claims is not permitted.
+On the four supported OEGK pages, a MAIN-world bridge registers the four
+specified tools through a callable native `document.modelContext`. When the
+native API is absent, the extension initializes the locally bundled, pinned
+`@mcp-b/webmcp-polyfill` and registers the same definitions. The polyfill does
+not replace native support and its testing shim is disabled in production.
 
 When the API is absent, disabled, or registration rejects, the extension shall
 continue local extraction, tracking, storage, and popup behavior normally.
 Failure shall not be retried in an unbounded loop.
-
-The dedicated extension page shall opt into an origin-keyed agent cluster using
-MV3 `cross_origin_opener_policy: same-origin` and
-`cross_origin_embedder_policy: require-corp`. This is required by the tested
-Chrome WebMCP implementation, which rejects `registerTool` when
-`document.domain` remains enabled. All dashboard resources are extension-local.
 
 Each definition uses `annotations: { readOnlyHint: true }`. Tool execution
 returns the JSON envelope directly; milestone one does not declare an output
@@ -56,10 +49,12 @@ honors the execution cancellation signal where applicable.
 
 ### OEGK-WEBMCP-002 — Normalized-data boundary
 
-Every tool handler shall obtain validated canonical claims through a read-only
-claim repository/service. Tool modules shall contain no DOM selectors and shall
-not call `OegkAdapter`, `document.querySelector`, OEGK page functions, or network
-APIs.
+Every background tool handler shall obtain validated canonical claims through a
+read-only claim repository/service. MAIN-world definitions are metadata-only
+proxies. Tool modules shall contain no DOM selectors and shall not call
+`OegkAdapter`, `document.querySelector`, OEGK page functions, or network APIs.
+The bridge contract and accepted PoC boundary are normative in
+`009-webmcp-bridge.md`.
 
 ### OEGK-WEBMCP-003 — Read-only guarantee
 
@@ -255,7 +250,7 @@ Optional properties are omitted when unknown.
 
 ### OEGK-WEBMCP-010 — Registration lifecycle and exposure
 
-Registrations shall be bound to the extension-owned document lifecycle using
+Registrations shall be bound to the supported OEGK page document lifecycle using
 the draft API's abort-signal mechanism where available. The extension shall not
 use `exposedTo` to share tools with third-party origins. Duplicate registration
 shall be prevented. Tool definitions shall be static for the document lifecycle;
@@ -280,11 +275,12 @@ claim semantics in `001-claim-model.md`.
 
 ## Security/privacy considerations
 
-WebMCP results contain sensitive personal, medical, and financial data. Tools are
-registered only in a browser-mediated extension-owned document, never the OEGK
-page main world and never an explicit third-party origin. The eventual UI and
-privacy notice must explain that an enabled browser agent may read tool results
-when the user invokes or authorizes it. No write-capable tool is allowed.
+WebMCP results contain sensitive personal, medical, and financial data. Proxy
+tools register in the OEGK MAIN world and never an explicit third-party origin.
+The PoC does not authenticate the page-world channel: OEGK page scripts can
+observe or race messages. The dashboard and privacy notice must explain this
+accepted boundary and that a browser agent may read invoked tool results. No
+write-capable tool is allowed.
 
 ## Acceptance criteria
 
@@ -304,18 +300,15 @@ when the user invokes or authorizes it. No write-capable tool is allowed.
 - **AC-OEGK-WEBMCP-006** (`OEGK-WEBMCP-009`): Tool outputs validate against the
   closed canonical claim schema and omit unknown optional fields.
 - **AC-OEGK-WEBMCP-007** (`OEGK-WEBMCP-001`, `OEGK-WEBMCP-010`): Registration
-  occurs only in an extension-owned document, is lifecycle-bound and
+  occurs only on supported OEGK documents, is native-first, lifecycle-bound and
   non-duplicated, and specifies no third-party `exposedTo` origin.
 
 ## Open questions
 
-- Which Chrome build, origin trial/flag, and exact WebMCP draft will be used for
-  milestone validation?
-- Does WebMCP operate in an extension-owned MV3 page in the target Chrome build,
-  and does that page remain discoverable long enough for useful tool calls?
-- If the API is available only in a normal web document, can tools be exposed
-  without moving claims or handlers into the Meine SV page's main world? If not,
-  WebMCP integration remains blocked rather than weakening the privacy boundary.
+- Which exact Chrome/WebMCP client versions will be used for milestone and
+  hackathon validation?
+- Does the target browser agent automatically discover MAIN-world tools, or
+  must it call `document.modelContext.getTools()` explicitly?
 - What user consent UI does the target browser provide before an agent reads
   sensitive tool results?
 - Should tool names gain an `oegk_` prefix to avoid collisions, despite the

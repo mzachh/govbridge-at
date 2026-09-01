@@ -116,6 +116,9 @@ Unit tests shall invoke every tool with valid, empty, boundary, invalid, and
 not-found inputs; validate outputs against the specified JSON Schemas; verify
 open filtering and yearly summaries; simulate absent/rejecting WebMCP APIs; and
 prove handlers perform no DOM, network, storage-write, or navigation operation.
+Bridge tests shall cover native-first registration, local fallback,
+unavailability, closed request/response validation, correlation, concurrency,
+timeouts, cancellation, duplicate IDs, wrong origins, and redacted failures.
 
 ### OEGK-TEST-009 — Security/package tests
 
@@ -216,7 +219,7 @@ entering the repository.
   will be selected during implementation?
 - What minimum coverage thresholds are appropriate after the module boundaries
   exist?
-- Which Chrome version/automation harness can exercise experimental WebMCP?
+- Which exact Chrome/WebMCP client versions will hackathon judges use?
 - Can hackathon review provide a sanitized claims-page fixture, or must a local
   developer create one manually?
 - Which manual checks are required on macOS and other target platforms?

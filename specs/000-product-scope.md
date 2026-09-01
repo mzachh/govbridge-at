@@ -141,4 +141,4 @@ for the confirmed claims page.
 - What does the unlabeled list-card date mean in each status group?
 - Is the minimal usable UI a toolbar popup only, or is a larger extension page
   needed after usability testing?
-- Which Chrome/WebMCP version and feature flag will the hackathon judges use?
+- Which Chrome/WebMCP client versions will the hackathon judges use?

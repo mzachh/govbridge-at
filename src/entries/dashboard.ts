@@ -1,7 +1,5 @@
 import type { StoredClaimState } from "../tracking/types.js";
 import { summarizeDashboardCounts } from "../ui/dashboard.js";
-import { registerExtensionPageTools } from "../webmcp/registrar.js";
-import type { WebMcpDocumentLike } from "../webmcp/types.js";
 
 interface ReadResponse { ok: boolean; data?: StoredClaimState }
 
@@ -15,14 +13,11 @@ function setText(selector: string, value: string): void {
   if (node) node.textContent = value;
 }
 
-function setRuntimeState(
-  state: "ready" | "unsupported" | "error",
-  label: string,
-  message: string,
-): void {
-  if (runtimeState) runtimeState.className = `runtime-state runtime-state--${state}`;
-  if (runtimeLabel) runtimeLabel.textContent = label;
-  if (status) status.textContent = message;
+if (runtimeState) runtimeState.className = "runtime-state runtime-state--ready";
+if (runtimeLabel) runtimeLabel.textContent = "Bridge packaged";
+if (status) {
+  status.textContent =
+    "The MAIN-world WebMcpBridge registers four tools on supported OEGK pages using native document.modelContext or its local fallback.";
 }
 
 const repository = {
@@ -46,27 +41,5 @@ void repository.read().then((state) => {
   if (storageStatus) {
     storageStatus.textContent = "Local claim storage is currently unavailable.";
     storageStatus.setAttribute("role", "alert");
-  }
-});
-
-void registerExtensionPageTools(document as Document & WebMcpDocumentLike, repository).then((result) => {
-  if (result.available) {
-    setRuntimeState(
-      "ready",
-      "4 tools live",
-      "Registered via document.modelContext.registerTool() on this extension-owned page.",
-    );
-  } else if (result.reason === "unsupported") {
-    setRuntimeState(
-      "unsupported",
-      "Unavailable",
-      "document.modelContext is not available in this browser document.",
-    );
-  } else {
-    setRuntimeState(
-      "error",
-      "Registration failed",
-      "The browser rejected WebMCP tool registration; no tools were exposed.",
-    );
   }
 });

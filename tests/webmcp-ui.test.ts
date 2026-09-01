@@ -6,7 +6,7 @@ import { summarizeDashboardCounts } from "../src/ui/dashboard.js";
 import { renderPopup } from "../src/ui/popup.js";
 import {
   createReadOnlyClaimTools,
-  registerExtensionPageTools,
+  registerPageTools,
   StorageUnavailableError,
 } from "../src/webmcp/index.js";
 import type {
@@ -165,7 +165,7 @@ describe("read-only WebMCP handlers", () => {
 
 describe("extension-page WebMCP registration", () => {
   it("is capability gated, static, read-only, lifecycle-bound and idempotent", async () => {
-    const unsupported = await registerExtensionPageTools({}, repository());
+    const unsupported = await registerPageTools({}, async () => ({ ok: true, data: {} }));
     expect(unsupported).toEqual({ available: false, reason: "unsupported" });
 
     const definitions: WebMcpToolDefinition[] = [];
@@ -178,8 +178,9 @@ describe("extension-page WebMCP registration", () => {
         },
       },
     };
-    const first = await registerExtensionPageTools(extensionDocument, repository());
-    const second = await registerExtensionPageTools(extensionDocument, repository());
+    const execute = vi.fn(async () => ({ ok: true, data: {} }));
+    const first = await registerPageTools(extensionDocument, execute);
+    const second = await registerPageTools(extensionDocument, execute);
     expect(first.available).toBe(true);
     expect(second.available).toBe(true);
     expect(definitions.map(({ name }) => name)).toEqual([
@@ -189,6 +190,12 @@ describe("extension-page WebMCP registration", () => {
       "get_reimbursement_summary",
     ]);
     expect(definitions.every(({ annotations }) => annotations.readOnlyHint)).toBe(true);
+    await expect(definitions.find(({ name }) => name === "get_claim")!.execute({}))
+      .resolves.toMatchObject({ ok: false, error: { code: "INVALID_INPUT" } });
+    expect(execute).not.toHaveBeenCalled();
+    await expect(definitions.find(({ name }) => name === "get_claim")!.execute({ claimId: "synthetic" }))
+      .resolves.toEqual({ ok: true, data: {} });
+    expect(execute).toHaveBeenCalledWith("get_claim", { claimId: "synthetic" });
     expect(signals).toHaveLength(4);
     expect(new Set(signals).size).toBe(1);
     expect(signals[0]!.aborted).toBe(false);
@@ -198,7 +205,7 @@ describe("extension-page WebMCP registration", () => {
 
   it("aborts partial registration and fails closed when registration rejects", async () => {
     const observedSignals: AbortSignal[] = [];
-    const result = await registerExtensionPageTools(
+    const result = await registerPageTools(
       {
         modelContext: {
           registerTool: vi.fn(async (_tool, options) => {
@@ -207,7 +214,7 @@ describe("extension-page WebMCP registration", () => {
           }),
         },
       },
-      repository(),
+      async () => ({ ok: true, data: {} }),
     );
     expect(result).toEqual({ available: false, reason: "rejected" });
     expect(observedSignals[0]!.aborted).toBe(true);
@@ -277,7 +284,7 @@ describe("hackathon WebMCP dashboard", () => {
     expect(page.querySelector(".read-only-badge")?.textContent).toBe("readOnlyHint: true");
     expect(page.body.textContent).toContain("document.modelContext");
     expect(page.body.textContent).toContain("Chrome storage");
-    expect(page.body.textContent).toContain("extension-owned tools");
+    expect(page.body.textContent).toContain("MAIN-world proxy tools");
     expect(page.querySelectorAll("button, input, form")).toHaveLength(0);
     expect(page.querySelectorAll("script[src^='http'], link[href^='http']")).toHaveLength(0);
   });

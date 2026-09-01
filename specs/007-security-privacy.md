@@ -79,10 +79,9 @@ imports, `eval`, `new Function`, or remotely hosted assets are allowed. The MV3
 content security policy shall remain at least as strict as Chrome's default and
 shall not enable unsafe evaluation.
 
-The extension-owned WebMCP dashboard uses `cross_origin_opener_policy:
-same-origin` and `cross_origin_embedder_policy: require-corp` so its document is
-origin-keyed and cannot use `document.domain`. Because all dashboard resources
-are local, this isolation adds no external resource dependency.
+The pinned WebMCP compatibility runtime and all bridge code are bundled locally;
+no CDN, remote import, origin header modification, or remotely hosted runtime is
+permitted.
 
 ### OEGK-SEC-006 — Data minimization
 
@@ -98,9 +97,10 @@ excluded as specified in `001-claim-model.md`.
 ### OEGK-SEC-007 — Extension storage boundary
 
 Claim data shall use extension-owned local storage and never sync storage or
-OEGK-owned storage. Content-page scripts shall not receive the full stored
-dataset. Messages between extension contexts shall use closed, validated
-payloads and reject unknown message types/properties.
+OEGK-owned storage. The MAIN-world bridge shall not receive the full raw stored
+state, events, or metadata. It receives only the normalized result of one
+explicitly invoked read-only tool. Messages between contexts use the closed
+protocol in `009-webmcp-bridge.md` and reject unknown message types/properties.
 
 ### OEGK-SEC-008 — Safe rendering
 
@@ -117,12 +117,12 @@ redacted diagnostics. It shall make no network request and persist no page data.
 ### OEGK-SEC-010 — WebMCP privacy boundary
 
 WebMCP tools are read-only, operate on normalized storage, and shall not use
-third-party `exposedTo` origins. They shall register only in an extension-owned
-document. Normalized claims and tool handlers must not be injected into the
-Meine SV main world; if the target browser requires such a bridge, integration
-is blocked pending a new security specification. Tool errors and descriptions
-shall not leak data. WebMCP unavailability must not cause fallback transmission
-or DOM scraping.
+third-party `exposedTo` origins. Static proxy definitions register in the Meine
+SV MAIN world; storage and handlers remain extension-owned. The PoC explicitly
+accepts that scripts on the matched OEGK origin can observe or race page-world
+bridge messages. This is documented rather than represented as an authenticated
+or isolated channel. Tool errors and descriptions shall not leak data. WebMCP
+unavailability must not cause fallback transmission or DOM scraping.
 
 ### OEGK-SEC-011 — Dependency and build hygiene
 

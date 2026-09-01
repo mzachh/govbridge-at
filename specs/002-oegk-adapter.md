@@ -54,7 +54,7 @@ rules belong inside the adapter module.
 
 The tracker, not the adapter, assigns canonical `id` and `lastSeen`. The optional
 `transientSourceId` is consumed only during reconciliation and is never persisted
-or exposed. See `009-implementation-decisions.md`.
+or exposed. See `010-implementation-decisions.md`.
 
 ## Non-goals
 
