@@ -84,9 +84,11 @@ creates a new document, so temporary IDs must be rediscovered. Production
 remains German-only for page markers. The agent does not switch silently between
 production and a synthetic origin.
 
-No hosted demo is currently published (`demoOrigin` is unset). Public
-publication and CC0 licensing of the fixture dataset remain deferred until
-local verification; preparing synthetic source is not publication permission.
+The synthetic demo is publicly reachable at
+`https://govbridge-at-demo.manuel857067.chatgpt.site`, as approved by the user.
+Its fictional claim pages use the public demo credentials; this is a simulation,
+not protection suitable for real medical data. The proposed CC0 fixture license
+has not been granted. No real account data was published.
 
 On supported OEGK pages, the extension registers three read-only WebMCP query
 tools in the page's MAIN JavaScript world. The type/range and retained-results

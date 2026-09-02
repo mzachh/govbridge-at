@@ -1,6 +1,6 @@
 {
   "productionOrigin": "https://www.meinesv.at",
-  "demoOrigin": null,
+  "demoOrigin": "https://govbridge-at-demo.manuel857067.chatgpt.site",
   "developmentOrigins": [
     "http://localhost:4173",
     "http://127.0.0.1:4173"

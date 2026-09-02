@@ -13,7 +13,13 @@ import { SEARCH_PAGE_PATH } from "../src/webmcp/catalog.js";
 
 describe("approved SiteContext environments", () => {
   it("accepts the approved production and loopback origins in the default package", () => {
-    expect(DEMO_ORIGIN).toBeUndefined();
+    expect(DEMO_ORIGIN).toBe("https://govbridge-at-demo.manuel857067.chatgpt.site");
+    expect(resolveSiteContext(`${DEMO_ORIGIN}${SEARCH_PAGE_PATH}`)).toEqual({
+      origin: DEMO_ORIGIN,
+      environment: "demo",
+    });
+    expect(isSupportedMeineSvUrl(`${DEMO_ORIGIN}${SEARCH_PAGE_PATH}`)).toBe(true);
+    expect(resolveSiteContext(`${DEMO_ORIGIN}.evil.invalid${SEARCH_PAGE_PATH}`)).toBeUndefined();
     expect(resolveSiteContext(`${PRODUCTION_ORIGIN}${SEARCH_PAGE_PATH}`)).toEqual({
       origin: PRODUCTION_ORIGIN,
       environment: "production",
@@ -49,16 +55,18 @@ describe("approved SiteContext environments", () => {
   it("uses the profile policy for manifest scope and page registration metadata", () => {
     expect(manifestMatchesForProfile("production")).toEqual([
       "https://www.meinesv.at/vsInfo/views/KE/*",
+      `${DEMO_ORIGIN}/vsInfo/views/KE/*`,
       "http://localhost:4173/vsInfo/views/KE/*",
       "http://127.0.0.1:4173/vsInfo/views/KE/*",
     ]);
     expect(manifestMatchesForProfile("development")).toEqual([
       "https://www.meinesv.at/vsInfo/views/KE/*",
+      `${DEMO_ORIGIN}/vsInfo/views/KE/*`,
       "http://localhost:4173/vsInfo/views/KE/*",
       "http://127.0.0.1:4173/vsInfo/views/KE/*",
     ]);
     expect(siteContextsForProfile("development").map(({ environment }) => environment)).toEqual([
-      "production", "development", "development",
+      "production", "demo", "development", "development",
     ]);
     const tools = pageToolCatalog(`http://localhost:4173${SEARCH_PAGE_PATH}`, "development");
     expect(tools.map(({ name }) => name)).toEqual([

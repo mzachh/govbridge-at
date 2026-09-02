@@ -85,12 +85,13 @@ building a package alone does not establish browser tool callability.
 
 The single `dist/` build supports production plus exact
 `http://localhost:4173` and `http://127.0.0.1:4173` origins, and will include a
-hosted demo only when an exact approved HTTPS origin is configured. Unconfigured
-or malformed origins are not accepted. `demoOrigin` is currently `null`: there
-is no deployed demo URL or published extension download. Public publication and
-the proposed CC0 fixture license are deferred until local verification
-completes. Do not switch a real-account request to the demo without the user's
-agreement.
+hosted demo at [GovBridge AT Demo](https://govbridge-at-demo.manuel857067.chatgpt.site).
+Unconfigured or malformed origins are not accepted. The hosted demo is publicly
+reachable and uses `peter` / `ThisIsJustADemo$` for its fictional claim pages;
+no Sites or MeineSV account is needed. Reload the existing extension from `dist/`
+to enable this exact hosted origin. An extension download and the proposed CC0
+fixture license remain deferred. Do not switch a real-account request to the demo
+without the user's agreement.
 
 ## WebMCP tools
 

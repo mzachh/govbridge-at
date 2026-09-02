@@ -1,6 +1,22 @@
 # GovBridge AT Demo — local implementation evidence
 
-Date: 2026-09-02. Status: local implementation; final installed-extension gate pending.
+Date: 2026-09-02. Status: publicly deployed demo; final installed-extension gate pending.
+
+## Hosted rollout
+
+- Public deployment succeeded at https://govbridge-at-demo.manuel857067.chatgpt.site
+  after the user approved judge access through the demo username/password login.
+- Sites version 1, source commit `7f0bb3f1f436763718ca5b9a641cfe94b891193a`,
+  deployment `appgdep_6a98838898e8819193856eab0c411ee3`, runtime secret revision 1.
+- Anonymous HTTPS checks passed for home and login without a Sites account.
+  Unauthenticated claims redirect to login; `peter` login issues a Secure/HttpOnly
+  cookie. Twenty fictional rows, both search POST/redirect routes and logout passed.
+  Only structural evidence was retained; cookies and secret values were not saved.
+- The exact assigned origin is configured in the single extension build. All 151
+  extension tests, typecheck, build and package audit passed with hosted scope.
+  Reload `dist/` before testing WebMCP on the hosted site. HTTP verification does
+  not establish installed-extension tool callability. Fixture licensing remains
+  unchanged; no real claim data was deployed.
 
 ## Implemented
 
@@ -47,7 +63,7 @@ Date: 2026-09-02. Status: local implementation; final installed-extension gate p
 
 1. User requested **one extension only**: implemented and audited. Normal `dist/` includes production and exact local demo origins; do not require another development installation. Old `build:dev`/`audit:dev` commands are aliases for the same package. Stale generated `dist-dev/` was removed; it contained no source or user data and can be recreated from source if ever needed. Reload the existing unpacked extension before the installed-tool check.
 2. Last live discovery on localhost found `document.modelContext` but no registered tools. Actual calls to the current four tools, mutation-driven reread, tool-based search navigation and same-document AJAX remain pending the rebuilt extension reload. No injected bridge or fixture API was used to fake this gate.
-3. The user declined public publication/fixture licensing for now and requested local verification first. No Site version has been saved, no source has been pushed to Sites, and no deployment or public access change was made. The reserved project identity is persisted for reuse. Hosted origin, release ZIP/checksum, absolute hosted social metadata and anonymous judge-access verification remain deferred.
+3. The earlier local-only publication deferral was lifted for the demo server; see the hosted rollout above. Release ZIP/checksum and absolute hosted social metadata remain deferred.
 4. CC0-1.0 is only proposed for the newly invented fixture data; it has not been granted. No public repository was created.
 5. Formal personal-skill validation was unavailable because PyYAML is missing. Frontmatter, paths, workflow separation and matching installed copy were checked manually.
 
