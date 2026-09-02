@@ -63,11 +63,12 @@ and call search_claims for date entry/submission; do not implement this action
 through the skill's own clicks. Prefer native WebMCP capability, otherwise
 supported CDP with document.modelContext. Hints alone are not callability.
 
-After invocation, inspect navigation and structural result/error/empty/login
-state and rediscover tools. Explain uncertain outcomes before any retry. Obtain
-consent before sensitive tool results or claim-bearing DOM/screenshots;
-disclose that list_claims returns all stored observations, including outside
-the requested range. Reuse consent for its agreed scope.
+All five tool invocations are bounded local operations and do not require a
+sensitivity approval. After invocation, inspect navigation and structural
+result/error/empty/login state and rediscover tools. Explain uncertain outcomes
+before any retry. Obtain consent before exposing or summarizing claim-bearing
+tool fields or DOM/screenshots; disclose the exact current-page scope and reuse
+consent only within its agreed scope.
 
 Separate the confirmed website search outcome from stored-claim summaries.
 lastSeen is observation time and does not establish query membership or

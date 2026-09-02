@@ -69,8 +69,9 @@ The reusable skill is versioned in [`skills/govbridge-at/`](skills/govbridge-at/
 Install that folder in your personal Codex skills directory, then use
 `$govbridge-at` and specify a date range. The skill opens external Chrome,
 helps select Wahlarzt / Wahltherapeut after your login, uses native/CDP
-capability discovery, and obtains consent before sensitive retrieval. It must
-not treat hints as proof of callability or initiate a read without consent.
+capability discovery, and obtains consent before exposing or summarizing
+claim-bearing fields. Tool invocation itself is a bounded local operation and
+does not require a separate sensitivity approval.
 
 The skill explains that reads are current-page only, may be partial, and do not
 create history. It also explains that temporary IDs expire, invoice-year

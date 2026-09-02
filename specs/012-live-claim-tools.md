@@ -14,8 +14,11 @@ cross-page merge, pagination traversal, or claim persistence is permitted.
 Only canonical Claim fields may cross the bridge. Exclude transient source IDs,
 HTML, DOM objects, document links/PDFs, authentication data and unrelated personal
 fields. Retain existing bridge identifiers for compatibility, not as a security
-secret. Same-origin page code can invoke/observe the bridge; consent is an agent
-workflow boundary, not a claim of in-page access control.
+secret. All five invocations are bounded local operations and do not transmit
+data to a third party; the four query responses can still contain sensitive
+claim fields and require consent before disclosure. Same-origin page code can
+invoke/observe the bridge; consent is an agent workflow boundary, not a claim
+of in-page access control.
 
 ## Contracts
 
