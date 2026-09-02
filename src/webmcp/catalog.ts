@@ -25,23 +25,23 @@ export const YEAR_INPUT_SCHEMA = Object.freeze({
 export const CLAIM_TOOL_CATALOG = Object.freeze([
   Object.freeze({
     name: "list_claims",
-    description: "List all locally observed OEGK claims in deterministic order.",
+    description: "Read OEGK claims rendered on the current page now, in page order. No refresh or stored history. Results include current-page completeness; IDs are temporary.",
     inputSchema: EMPTY_INPUT_SCHEMA,
   }),
   Object.freeze({
     name: "get_open_claims",
-    description: "List locally observed OEGK claims whose status is submitted or processing.",
+    description: "Read the current OEGK page and return claims whose status is submitted or processing. Current-page scope only.",
     inputSchema: EMPTY_INPUT_SCHEMA,
   }),
   Object.freeze({
     name: "get_claim",
-    description: "Get one locally observed OEGK claim by its canonical claim ID.",
+    description: "Read the current OEGK page and find a temporary snapshot claim ID. Never navigates. If NOT_FOUND, list again.",
     inputSchema: CLAIM_ID_INPUT_SCHEMA,
   }),
   Object.freeze({
     name: "get_reimbursement_summary",
     description:
-      "Summarize known invoice and reimbursement amounts for OEGK claims with an invoice date in one year.",
+      "Read the current OEGK page and sum known amounts for claims with an invoice date in one year. Not account-wide or equivalent to the website search period. Inspect page completeness and known-amount counts.",
     inputSchema: YEAR_INPUT_SCHEMA,
   }),
 ] as const);

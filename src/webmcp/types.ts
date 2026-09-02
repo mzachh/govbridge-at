@@ -1,13 +1,10 @@
-import type { Claim } from "../domain/claim.js";
-import type { ClaimRepository } from "../storage/storage.js";
-
 export type { Claim, ClaimStatus } from "../domain/claim.js";
-export type { ClaimRepository } from "../storage/storage.js";
 
 export type ToolErrorCode =
   | "INVALID_INPUT"
   | "NOT_FOUND"
-  | "STORAGE_UNAVAILABLE"
+  | "PAGE_NOT_READY"
+  | "EXTRACTION_FAILED"
   | "UNSUPPORTED_PAGE"
   | "FORM_UNAVAILABLE"
   | "SEARCH_IN_PROGRESS"

@@ -1,8 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { searchClaims } from "../src/actions/search-claims.js";
-import { onSearchDispatched } from "../src/actions/search-observation.js";
+import { searchClaims, isSearchPending } from "../src/actions/search-claims.js";
 import { isValidSearchInput, pageToolCatalog, SEARCH_ENTRY_PATH, SEARCH_PAGE_PATH, SEARCH_RESULTS_PATH } from "../src/webmcp/catalog.js";
-import { createObservationWindow } from "../src/adapter/observation-window.js";
 
 const SEARCH_URL = `https://www.meinesv.at${SEARCH_PAGE_PATH}`;
 const ENTRY_URL = `https://www.meinesv.at${SEARCH_ENTRY_PATH}?contentid=10007.815943`;
@@ -192,10 +190,8 @@ describe("GovBridge one-shot native-value and JSF dispatch", () => {
     for (const event of ["input", "change"]) form.addEventListener(event, (value) => {
       events.push(`${(value.target as HTMLInputElement).id}:${event}`);
     });
-    const signal = vi.fn();
-    const remove = onSearchDispatched(page, signal);
     const click = vi.spyOn(submitter, "click").mockImplementation(() => {
-      expect(signal).toHaveBeenCalledOnce();
+      expect(isSearchPending(page)).toBe(true);
       expect(from.value).toBe("28.02.2021");
       expect(to.value).toBe("28.02.2026");
     });
@@ -205,7 +201,6 @@ describe("GovBridge one-shot native-value and JSF dispatch", () => {
     expect(click).toHaveBeenCalledOnce();
     expect(await searchClaims(page, INPUT)).toMatchObject({ error: { code: "SEARCH_IN_PROGRESS" } });
     expect(click).toHaveBeenCalledOnce();
-    remove();
   });
 
   it("preserves a site's existing click handler and keeps document locks independent", async () => {
@@ -249,52 +244,5 @@ describe("GovBridge one-shot native-value and JSF dispatch", () => {
     expect(JSON.stringify(result)).not.toContain("sensitive page text");
     expect(await searchClaims(page, INPUT)).toMatchObject({ error: { code: "SEARCH_IN_PROGRESS" } });
     expect(click).toHaveBeenCalledOnce();
-  });
-});
-
-describe("GovBridge bounded passive observation rearming", () => {
-  it("flushes a result mutation observed just before the observation deadline", async () => {
-    vi.useFakeTimers();
-    const page = fixture();
-    const observe = vi.fn(async () => undefined);
-    const observation = createObservationWindow(page, observe, 1_000);
-    observation.rearm();
-    await vi.advanceTimersByTimeAsync(900);
-    page.body.append(page.createElement("section"));
-    await vi.advanceTimersByTimeAsync(100);
-    expect(observe).toHaveBeenCalledTimes(1);
-    await vi.advanceTimersByTimeAsync(150);
-    expect(observe).toHaveBeenCalledTimes(2);
-    page.body.append(page.createElement("section"));
-    await vi.advanceTimersByTimeAsync(500);
-    expect(observe).toHaveBeenCalledTimes(2);
-    observation.dispose();
-  });
-
-  it("observes AJAX changes after the initial window expires and stops again", async () => {
-    vi.useFakeTimers();
-    const page = fixture();
-    const observe = vi.fn(async () => undefined);
-    const observation = createObservationWindow(page, observe, 1_000);
-    const remove = onSearchDispatched(page, () => observation.rearm());
-    observation.rearm();
-    expect(observe).toHaveBeenCalledTimes(1);
-    await vi.advanceTimersByTimeAsync(1_001);
-    page.body.append(page.createElement("div"));
-    await vi.advanceTimersByTimeAsync(300);
-    expect(observe).toHaveBeenCalledTimes(1);
-    vi.spyOn(controls(page).submitter, "click").mockImplementation(() => { page.body.append(page.createElement("section")); });
-    await searchClaims(page, INPUT);
-    expect(observe).toHaveBeenCalledTimes(2);
-    await vi.advanceTimersByTimeAsync(300);
-    expect(observe).toHaveBeenCalledTimes(3);
-    await vi.advanceTimersByTimeAsync(701);
-    page.body.append(page.createElement("div"));
-    await vi.advanceTimersByTimeAsync(300);
-    expect(observe).toHaveBeenCalledTimes(3);
-    remove();
-    observation.dispose();
-    observation.rearm();
-    expect(observe).toHaveBeenCalledTimes(3);
   });
 });

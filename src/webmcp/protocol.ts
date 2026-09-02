@@ -67,7 +67,7 @@ export function isToolResult(value: unknown): value is ToolResult<unknown> {
   }
   if (!onlyKeys(value, ["ok", "error"]) || !record(value.error) ||
       !onlyKeys(value.error, ["code", "message"])) return false;
-  return new Set(["INVALID_INPUT", "NOT_FOUND", "STORAGE_UNAVAILABLE", "INTERNAL_ERROR", "UNSUPPORTED_PAGE", "FORM_UNAVAILABLE", "SEARCH_IN_PROGRESS"]).has(
+  return new Set(["INVALID_INPUT", "NOT_FOUND", "PAGE_NOT_READY", "EXTRACTION_FAILED", "INTERNAL_ERROR", "UNSUPPORTED_PAGE", "FORM_UNAVAILABLE", "SEARCH_IN_PROGRESS"]).has(
     String(value.error.code),
   ) && typeof value.error.message === "string" && value.error.message.length <= 256 && withinFrameLimit(value);
 }

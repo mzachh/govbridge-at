@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>GovBridge AT – WebMCP</title>
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -16,10 +16,11 @@
             <h1>GovBridge AT</h1>
           </div>
         </div>
-        <p class="hero-copy">A WebMCP bridge for Austrian government services. First service: OEGK claim search and local tracking in Meine SV.</p>
+        <p class="hero-copy">A WebMCP bridge for Austrian government services. The OEGK integration reads claims on demand from the currently rendered Meine SV page and does not retain claim records.</p>
         <ul class="hero-badges" aria-label="Key properties">
-          <li>4 query tools + 1 search action</li>
-          <li>Local storage</li>
+          <li>4 live query tools + 1 bounded search action</li>
+          <li>Current page only</li>
+          <li>No claim persistence</li>
           <li>No claim submissions</li>
         </ul>
       </header>
@@ -27,7 +28,7 @@
       <section class="dashboard-panel runtime-panel" aria-labelledby="runtime-heading">
         <div class="section-heading">
           <div>
-            <p class="section-kicker">Packaged extension state</p>
+            <p class="section-kicker">Packaged extension capability</p>
             <h2 id="runtime-heading">WebMCP runtime</h2>
           </div>
           <div class="runtime-state runtime-state--checking" id="runtime-state">
@@ -35,31 +36,12 @@
             <span id="runtime-label">Loading</span>
           </div>
         </div>
-        <p class="runtime-message" id="webmcp-status" aria-live="polite">Loading WebMCP bridge status…</p>
-
-        <div class="metric-grid" aria-label="Local claim summary">
-          <article class="metric-card">
-            <span class="metric-label">Observed</span>
-            <strong id="claim-count">—</strong>
-            <span class="metric-note">local claims</span>
-          </article>
-          <article class="metric-card metric-card--open">
-            <span class="metric-label">Open</span>
-            <strong id="open-count">—</strong>
-            <span class="metric-note">submitted or processing</span>
-          </article>
-          <article class="metric-card metric-card--closed">
-            <span class="metric-label">Closed</span>
-            <strong id="closed-count">—</strong>
-            <span class="metric-note">completed or rejected</span>
-          </article>
-          <article class="metric-card metric-card--unknown">
-            <span class="metric-label">Unknown</span>
-            <strong id="unknown-count">—</strong>
-            <span class="metric-note">kept separate</span>
-          </article>
-        </div>
-        <p class="storage-status" id="storage-status" aria-live="polite">Loading aggregate counts from extension storage…</p>
+        <p class="runtime-message" id="webmcp-status" aria-live="polite">Reading packaged capability metadata…</p>
+        <ul aria-label="Runtime capabilities">
+          <li>Uses native <code>document.modelContext</code> when available.</li>
+          <li>Falls back to the pinned, locally bundled compatibility runtime.</li>
+          <li>Registers on supported Meine SV pages; the dashboard does not inspect the active tab.</li>
+        </ul>
       </section>
 
       <section class="tools-section" aria-labelledby="tools-heading">
@@ -74,46 +56,47 @@
         <div class="tool-grid">
           <article class="tool-card">
             <div class="tool-card__top"><span class="method-badge">ACTION</span><code>search_claims</code></div>
-            <p>Fills and submits the selected Wahlarzt / Wahltherapeut search form. Discoverable on the type/range and results pages; executable only when the selected form is present.</p>
+            <p>Fills and submits the selected Wahlarzt / Wahltherapeut search form. Discoverable on the type/range and results pages; executable only when the selected form is present. It uses <code>Weiter</code> on the type/range form and the retained results-form <code>OK</code> control on the results page.</p>
             <dl class="tool-contract">
               <div><dt>Input</dt><dd><code>{ from: "YYYY-MM-DD", to: "YYYY-MM-DD" }</code> · at most five years</dd></div>
               <div><dt>Returns</dt><dd><code>{ status: "submission_requested" }</code> or navigation interrupts the call</dd></div>
               <div><dt>Annotation</dt><dd><code>readOnlyHint: false</code></dd></div>
             </dl>
           </article>
+
           <article class="tool-card">
             <div class="tool-card__top"><span class="method-badge">READ</span><code>list_claims</code></div>
-            <p>Lists every locally observed claim in deterministic order.</p>
+            <p>Reads the claims rendered on the current page when invoked. It never refreshes, paginates, merges pages, or reads stored history.</p>
             <dl class="tool-contract">
               <div><dt>Input</dt><dd><code>{}</code></dd></div>
-              <div><dt>Returns</dt><dd><code>{ claims, count }</code></dd></div>
+              <div><dt>Returns</dt><dd><code>{ claims, count, page }</code> · current-page metadata</dd></div>
             </dl>
           </article>
 
           <article class="tool-card">
             <div class="tool-card__top"><span class="method-badge">READ</span><code>get_open_claims</code></div>
-            <p>Filters claims whose status is <code>submitted</code> or <code>processing</code>.</p>
+            <p>Reads the current page and filters claims whose status is <code>submitted</code> or <code>processing</code>.</p>
             <dl class="tool-contract">
               <div><dt>Input</dt><dd><code>{}</code></dd></div>
-              <div><dt>Returns</dt><dd><code>{ claims, count }</code></dd></div>
+              <div><dt>Returns</dt><dd><code>{ claims, count, page }</code></dd></div>
             </dl>
           </article>
 
           <article class="tool-card">
             <div class="tool-card__top"><span class="method-badge">READ</span><code>get_claim</code></div>
-            <p>Returns one claim using its stable, extension-generated canonical ID.</p>
+            <p>Reads the current page and returns one claim by its temporary snapshot ID. It never navigates; callers list again after a page change or expiry.</p>
             <dl class="tool-contract">
               <div><dt>Input</dt><dd><code>{ claimId: string }</code></dd></div>
-              <div><dt>Returns</dt><dd><code>{ claim }</code></dd></div>
+              <div><dt>Returns</dt><dd><code>{ claim, page }</code> or <code>NOT_FOUND</code></dd></div>
             </dl>
           </article>
 
           <article class="tool-card">
             <div class="tool-card__top"><span class="method-badge">READ</span><code>get_reimbursement_summary</code></div>
-            <p>Summarizes known invoice and reimbursement amounts by invoice year.</p>
+            <p>Reads the current page and summarizes known invoice and reimbursement amounts by invoice year. It is not account-wide.</p>
             <dl class="tool-contract">
               <div><dt>Input</dt><dd><code>{ year: integer, 2000…2100 }</code></dd></div>
-              <div><dt>Returns</dt><dd><code>{ year, claimCount, invoiceAmountKnownCount, reimbursementAmountKnownCount, invoiceTotal, reimbursedTotal, yearBasis, currency }</code></dd></div>
+              <div><dt>Returns</dt><dd><code>{ year, claimCount, invoiceAmountKnownCount, reimbursementAmountKnownCount, invoiceTotal, reimbursedTotal, yearBasis, currency, page }</code></dd></div>
             </dl>
           </article>
         </div>
@@ -122,17 +105,28 @@
       <section class="dashboard-panel architecture-panel" aria-labelledby="architecture-heading">
         <div>
           <p class="section-kicker">Data boundary</p>
-          <h2 id="architecture-heading">Local-first by design</h2>
-          <p class="architecture-copy">The extension observes supported Meine SV pages in an isolated content script, keeps normalized claim data in extension storage, and registers proxy tools through <code>document.modelContext</code> in the page's MAIN world.</p>
+          <h2 id="architecture-heading">Live, page-scoped reads</h2>
+          <p class="architecture-copy">Every query invokes the isolated live reader for the current document. No claim snapshot, observation history, or browser storage is created by this extension version.</p>
         </div>
         <ol class="data-flow" aria-label="Data flow">
-          <li><span>1</span><strong>Meine SV DOM</strong><small>read-only observation</small></li>
-          <li><span>2</span><strong>Chrome storage</strong><small>normalized local state</small></li>
-          <li><span>3</span><strong>Content Bridge</strong><small>closed tool protocol</small></li>
-          <li><span>4</span><strong>WebMCP</strong><small>MAIN-world proxy tools</small></li>
+          <li><span>1</span><strong>Meine SV DOM</strong><small>rendered current page</small></li>
+          <li><span>2</span><strong>Live reader</strong><small>isolated extraction</small></li>
+          <li><span>3</span><strong>WebMCP bridge</strong><small>MAIN-world proxy tools</small></li>
         </ol>
-        <p class="architecture-copy">The four query tools use <code>readOnlyHint: true</code> and read stored observations. The search action is discoverable on the type/range and results pages, runs in the isolated page context, and clicks only the validated date-range form's <code>Weiter</code> control when present. Its acknowledgement does not confirm fresh results.</p>
-        <p class="privacy-note"><strong>PoC boundary:</strong> OEGK page scripts can observe or race bridge traffic and invoke the bounded search action. Only normalized query results or search inputs/acknowledgements cross—never credentials, cookies, raw HTML, PDFs, or storage internals. This dashboard displays aggregate counts only. Stored observations may predate the current search.</p>
+        <p class="architecture-copy">Only canonical Claim fields and page metadata cross the closed bridge. IDs combine a document nonce, a snapshot digest, and row position; they are temporary and expire when the page changes. <code>completeness: "partial"</code> and <code>skippedCount</code> identify malformed rows without exposing page diagnostics.</p>
+        <p class="privacy-note"><strong>PoC boundary:</strong> The current page is not refreshed, paginated, or merged with another page. “Live” means read at invocation time, not newly fetched server data. Displayed ranges do not prove server-query boundaries, and invoice-year summaries use invoice dates. Legacy bytes written by older versions remain untouched and inaccessible to this runtime.</p>
+      </section>
+
+      <section class="dashboard-panel" aria-labelledby="workflow-heading">
+        <p class="section-kicker">Workflow</p>
+        <h2 id="workflow-heading">Consent, prerequisites and troubleshooting</h2>
+        <ul>
+          <li>Complete ID Austria login yourself and open a supported Meine SV OEGK route.</li>
+          <li>Before a sensitive read, confirm that the agent can call the registered tools and that you consent to the current-page fields being returned.</li>
+          <li>After <code>search_claims</code>, inspect the resulting page and rediscover tools. Its acknowledgement does not prove that the search succeeded.</li>
+          <li>If tools are unavailable, reload the unpacked extension and the Meine SV tab, then inspect native WebMCP or the local compatibility runtime. Hints alone do not prove callability.</li>
+          <li>For an expired ID or a changed page, call <code>list_claims</code> again. A plain search mask or unsettled navigation returns <code>PAGE_NOT_READY</code>.</li>
+        </ul>
       </section>
     </main>
     <script src="dashboard.js"></script>

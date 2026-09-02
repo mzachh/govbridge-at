@@ -25,7 +25,7 @@ export interface Claim {
   lastSeen: string;
 }
 
-/** Adapter output before the tracker assigns identity and observation time. */
+/** Adapter output before the live reader assigns snapshot identity and read time. */
 export interface ClaimObservation {
   provider?: string;
   treatmentDate?: string;
@@ -48,7 +48,7 @@ export type ClaimPageKind = "type-range" | "results" | "open-rejected-detail" | 
 export interface ClaimExtractionResult {
   state: ExtractionState;
   pageKind?: ClaimPageKind;
-  /** True only when absence is authoritative for the observed results range. */
+  /** True when the rendered snapshot parsed fully; never account-wide coverage. */
   snapshotComplete: boolean;
   observations: ClaimObservation[];
   observedRange?: { from: string; to: string };

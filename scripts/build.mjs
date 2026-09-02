@@ -1,15 +1,15 @@
-import { cp, mkdir } from "node:fs/promises";
+import { cp, mkdir, rm } from "node:fs/promises";
 import { build } from "esbuild";
 
 const root = new URL("../", import.meta.url);
 const outdir = new URL("../dist/", import.meta.url);
 await mkdir(outdir, { recursive: true });
+// Retired bundles must never survive an incremental build.
+for (const file of ["background.js", "content.js"]) await rm(new URL(file, outdir), { force: true });
 
 await build({
   entryPoints: {
-    background: new URL("../src/entries/background.ts", import.meta.url).pathname,
     "content-bridge": new URL("../src/entries/content-bridge.ts", import.meta.url).pathname,
-    content: new URL("../src/entries/content.ts", import.meta.url).pathname,
     popup: new URL("../src/entries/popup.ts", import.meta.url).pathname,
     dashboard: new URL("../src/entries/dashboard.ts", import.meta.url).pathname,
     "webmcp-main": new URL("../src/entries/webmcp-main.ts", import.meta.url).pathname

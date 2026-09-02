@@ -1,5 +1,9 @@
 # GovBridge AT and guided OEGK search
 
+> **Status: historical / not current.** This specification predates the live
+> current-page contract and remains as design history. [Spec 012 — Live claim
+> tools](012-live-claim-tools.md) is normative where requirements differ.
+
 ## Product and compatibility
 
 The product is GovBridge AT; the package and Codex skill are `govbridge-at`.

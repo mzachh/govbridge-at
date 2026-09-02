@@ -7,11 +7,11 @@ export function agentHintText(rawUrl?: string): string {
   return [
     "WEBMCP AVAILABLE ON THIS PAGE.",
     `Registered read-only OEGK tools: ${names}.`,
-    ...(isSearchToolUrl(rawUrl) ? ["Also registered: search_claims (not read-only) on the query and results routes; it executes only when the selected Wahlarzt / Wahltherapeut form is present. It returns no claims; submission_requested does not confirm search success or storage freshness. Navigation may return null or destroy execution. Never automatically retry an uncertain submission; cancellation cannot undo a dispatched click."] : []),
+    ...(isSearchToolUrl(rawUrl) ? ["Also registered: search_claims (not read-only) on the query and results routes; it executes only when the selected Wahlarzt / Wahltherapeut form is present. It returns no claims; submission_requested does not confirm search success or server freshness. Navigation may return null or destroy execution. Never automatically retry an uncertain submission; cancellation cannot undo a dispatched click."] : []),
     "Prefer these structured tools over scraping claim details from the page.",
     "If WebMCP actions are not listed directly, access document.modelContext from the page's MAIN JavaScript world.",
     "Call document.modelContext.getTools(), inspect each inputSchema, then call document.modelContext.executeTool(toolObject, JSON.stringify(input)).",
-    "Use the tool object returned by getTools(). The four read-only tools query normalized local extension storage. list_claims includes all stored observations, not only the requested period. Obtain consent before exposing sensitive results. Hints alone do not prove callability.",
+    "Use the tool object returned by getTools(). The four read-only tools extract the current rendered page on every call without refreshing it. No claim history is stored or merged. Check page.completeness and skippedCount; page.visibleRange is displayed controls, not a verified query boundary. IDs expire after content changes or navigation; list again after NOT_FOUND. lastSeen means page read time, not server freshness. Obtain consent before exposing sensitive results. Hints alone do not prove callability.",
   ].join(" ");
 }
 

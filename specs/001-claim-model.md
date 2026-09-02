@@ -1,5 +1,9 @@
 # Canonical Claim Model
 
+> **Status: historical / not current.** This specification predates the live
+> current-page contract and remains as design history. [Spec 012 — Live claim
+> tools](012-live-claim-tools.md) is normative where requirements differ.
+
 ## Purpose
 
 Define the OEGK-independent canonical representation consumed by claim

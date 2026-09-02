@@ -114,7 +114,7 @@ describe("OEGK-ADAPTER fixture extraction", () => {
       </section></form>`, "/vsInfo/views/KE/einreichungListe.xhtml");
     const result = await adapter.extractClaims();
     expect(result.state).toBe("complete");
-    expect(result.snapshotComplete).toBe(true);
+    expect(result.snapshotComplete).toBe(false);
     expect(result.observedRange).toEqual({ from: "2026-01-01", to: "2026-12-31" });
     expect(result.observations).toHaveLength(5);
     expect(result.observations.map((item) => item.status)).toEqual(["processing", "processing", "rejected", "completed", "unknown"]);
@@ -145,7 +145,7 @@ describe("OEGK-ADAPTER fixture extraction", () => {
       <tr><th>abzüglich Einbehalt(e)</th><td>2,00 €</td></tr>
       </table>`, "/vsInfo/views/KE/einreichungDetail.xhtml");
     const result = await detail.extractClaims();
-    expect(result).toMatchObject({ state: "complete", pageKind: "reimbursed-detail", snapshotComplete: false });
+    expect(result).toMatchObject({ state: "complete", pageKind: "reimbursed-detail", snapshotComplete: true });
     expect(result.observations[0]).toEqual({
       status: "completed", source: "oegk", provider: "Praxis Gamma",
       treatmentDate: "2026-08-01", treatmentEndDate: "2026-08-03",

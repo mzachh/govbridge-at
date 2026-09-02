@@ -1,6 +1,6 @@
 interface:
   display_name: "GovBridge AT"
-  short_description: "Guided OEGK searches and consented claim summaries"
-  default_prompt: "Use $govbridge-at to help me search my OEGK reimbursements in Chrome and summarize the stored claims after checking the date range and my consent."
+  short_description: "OEGK searches and consented live-page summaries"
+  default_prompt: "Use $govbridge-at to help me search my OEGK reimbursements in Chrome and summarize current-page claims after checking the date range and my consent."
 policy:
   allow_implicit_invocation: true

@@ -1,10 +1,31 @@
 import { isSearchPageUrl, isSearchResultsUrl, isSearchToolUrl, isValidSearchInput, SEARCH_PAGE_PATH, SEARCH_RESULTS_PATH } from "../webmcp/catalog.js";
 import type { ToolErrorCode, ToolResult } from "../webmcp/types.js";
-import { notifySearchDispatched } from "./search-observation.js";
 
 type SearchResult = ToolResult<{ status: "submission_requested" }>;
 const busyDocuments = new WeakSet<Document>();
 const dispatchedDocuments = new WeakSet<Document>();
+// Weak structural identities only: do not retain detached claim DOM or claim values.
+const pendingDocuments = new WeakMap<Document, WeakSet<Element>>();
+function outcomeNodes(page: Document): Element[] {
+  const results = Array.from(page.querySelectorAll('.card_container [role="grid"], .card_container [role="row"]'));
+  const alerts = Array.from(page.querySelectorAll('[role="alert"]')).filter((alert) =>
+    ["In diesem Abfragezeitraum wurde keine Kostenerstattung bzw. kein Onlineantrag gefunden.",
+      "Fehlerhafte Eingaben im Formular", "Der Abfragezeitraum darf höchstens 5 Jahre betragen."]
+      .some((message) => text(alert).includes(message)));
+  return [...results, ...alerts];
+}
+export function isSearchPending(page: Document): boolean {
+  if (busyDocuments.has(page)) return true;
+  const previous = pendingDocuments.get(page);
+  if (!previous) return false;
+  const current = outcomeNodes(page);
+  // A JSF replacement can settle a same-document search. Mere date edits cannot.
+  if (current.some((node) => !previous.has(node))) {
+    pendingDocuments.delete(page);
+    return false;
+  }
+  return true;
+}
 
 function failure(code: ToolErrorCode): SearchResult {
   const messages: Partial<Record<ToolErrorCode, string>> = {
@@ -144,12 +165,7 @@ export async function searchClaims(pageDocument: Document, input: unknown): Prom
     if (!sameForm(controls, inspectForm(pageDocument)) || controls.from.value !== from || controls.to.value !== to) {
       return failure("FORM_UNAVAILABLE");
     }
-    // Rearm the existing passive observer before a possible synchronous JSF/AJAX update.
-    // There is no payload, exported page API, hidden-field inspection or constructed request.
-    notifySearchDispatched(pageDocument);
-    if (!sameForm(controls, inspectForm(pageDocument)) || controls.from.value !== from || controls.to.value !== to) {
-      return failure("FORM_UNAVAILABLE");
-    }
+    pendingDocuments.set(pageDocument, new WeakSet(outcomeNodes(pageDocument)));
     dispatchedDocuments.add(pageDocument);
     controls.submitter.click();
     return { ok: true, data: { status: "submission_requested" } };

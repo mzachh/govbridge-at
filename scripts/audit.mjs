@@ -2,7 +2,7 @@ import { readFile, readdir } from "node:fs/promises";
 
 const root = new URL("../dist/", import.meta.url);
 const expected = new Set([
-  "PRIVACY.md", "THIRD_PARTY_NOTICES.txt", "background.js", "content-bridge.js", "content.js",
+  "PRIVACY.md", "THIRD_PARTY_NOTICES.txt", "content-bridge.js",
   "dashboard.html", "dashboard.js", "manifest.json", "popup.html", "popup.js", "styles.css",
   "webmcp-main.js",
 ]);
@@ -15,7 +15,7 @@ const projectPackage = JSON.parse(await readFile(new URL("../package.json", impo
 if (projectPackage.dependencies?.["@mcp-b/webmcp-polyfill"] !== "4.0.0") {
   throw new Error("WebMCP compatibility runtime must remain exactly pinned");
 }
-if (JSON.stringify(manifest.permissions) !== JSON.stringify(["storage"])) throw new Error("Manifest permission drift");
+if ((manifest.permissions?.length ?? 0) !== 0 || "background" in manifest || manifest.content_scripts?.length !== 2) throw new Error("Manifest permission drift");
 if ("host_permissions" in manifest || "optional_host_permissions" in manifest || "web_accessible_resources" in manifest) throw new Error("Forbidden manifest capability");
 const main = manifest.content_scripts?.find((entry) => entry.world === "MAIN");
 const relay = manifest.content_scripts?.find((entry) => entry.js?.includes("content-bridge.js"));
@@ -36,6 +36,6 @@ const mainRuntime = await readFile(new URL("webmcp-main.js", root), "utf8");
 if (!mainRuntime.includes("installTestingShim: false") || !mainRuntime.includes("__isWebMCPPolyfill")) {
   throw new Error("WebMCP local fallback packaging drift");
 }
-for (const pattern of [/\bfetch\s*\(/, /XMLHttpRequest/, /WebSocket/, /sendBeacon/, /\.innerHTML\s*=/, /eval\s*\(/, /new Function/]) {
+for (const pattern of [/chrome\.storage/, /claims\.(?:observe|read)/, /webmcp\.execute/, /localStorage/, /indexedDB/, /\bfetch\s*\(/, /XMLHttpRequest/, /WebSocket/, /sendBeacon/, /\.innerHTML\s*=/, /eval\s*\(/, /new Function/]) {
   if (pattern.test(runtime)) throw new Error(`Forbidden runtime construct: ${pattern}`);
 }

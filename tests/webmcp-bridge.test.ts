@@ -12,7 +12,6 @@ import { disposeOnFinalPageHide, startWebMcpBridge } from "../src/webmcp/runtime
 import type { WebMcpToolDefinition } from "../src/webmcp/types.js";
 import { pageToolCatalog, SEARCH_ENTRY_PATH, SEARCH_PAGE_PATH, SEARCH_RESULTS_PATH } from "../src/webmcp/catalog.js";
 import { registerPageTools } from "../src/webmcp/registrar.js";
-import { parseExtensionRequest } from "../src/entries/messages.js";
 import {
   AGENT_HINT_ATTRIBUTE,
   agentHintText,
@@ -34,12 +33,11 @@ afterEach(() => {
 });
 
 describe("OEGK-BRIDGE-004 closed protocol", () => {
-  it("allows the search only on the page bridge and preserves the storage-query worker boundary", () => {
+  it("allows the bounded search and live-query errors on the page bridge", () => {
     const request = createBridgeRequest("search", "search_claims", { from: "2026-01-01", to: "2026-09-01" });
     expect(parseBridgeRequest(request)).toEqual(request);
     expect(parseBridgeRequest({ ...request, input: { from: "2026-02-30", to: "2026-09-01" } })).toBeUndefined();
-    expect(parseExtensionRequest({ type: "webmcp.execute", tool: "search_claims", input: request.input })).toBeUndefined();
-    for (const code of ["INVALID_INPUT", "UNSUPPORTED_PAGE", "FORM_UNAVAILABLE", "SEARCH_IN_PROGRESS", "INTERNAL_ERROR"] as const) {
+    for (const code of ["INVALID_INPUT", "UNSUPPORTED_PAGE", "FORM_UNAVAILABLE", "SEARCH_IN_PROGRESS", "INTERNAL_ERROR", "PAGE_NOT_READY", "EXTRACTION_FAILED"] as const) {
       expect(parseBridgeResponse(createBridgeResponse("search", { ok: false, error: { code, message: "Redacted." } })))
         .toBeDefined();
     }
