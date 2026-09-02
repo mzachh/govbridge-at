@@ -5,7 +5,6 @@ import {
   normalizeLocalDate,
   normalizeText,
   sortClaims,
-  summarizeClaimsByInvoiceYear,
   validateClaim,
   type Claim
 } from "../src/domain/claim";
@@ -63,26 +62,25 @@ describe("OEGK-CLAIM-001 OEGK-CLAIM-002 canonical domain", () => {
     expect(classifyStatus("rejected")).toBe("closed");
   });
 
-  it("OEGK-UI-005 OEGK-WEBMCP-008 summarizes only the invoice year and known values", () => {
-    const summary = summarizeClaimsByInvoiceYear([
-      claim({ id: "a", invoiceDate: "2026-01-02", invoiceAmount: 100, reimbursementAmount: 40 }),
-      claim({ id: "b", invoiceDate: "2026-05-06" }),
-      claim({ id: "c", treatmentDate: "2026-05-06", invoiceAmount: 999 })
-    ], 2026);
-    expect(summary).toEqual({
-      year: 2026,
-      claimCount: 2,
-      invoiceAmountKnownCount: 1,
-      reimbursementAmountKnownCount: 1,
-      invoiceTotal: 100,
-      reimbursedTotal: 40,
-      yearBasis: "invoiceDate",
-      currency: "EUR"
-    });
-  });
 });
 
 describe("OEGK-ADAPTER fixture extraction", () => {
+  it.each([
+    ["↪ 35.50 €", 35.5],
+    ["↪ 42.00 €", 42],
+    ["Rückerstattung: 42,00 €", 42],
+    ["Rückerstattung: ↪ 94.20 €", 94.2],
+    ["Unrelated: 42.00 €", undefined],
+  ])("reads only recognized reimbursement badge notation: %s", async (badge, amount) => {
+    const adapter = fixture(`<h1>Liste der Einreichungen</h1>
+      <section class="card_container"><div class="card_title"><h2>erstattete Einreichungen</h2></div>
+      <div role="grid" class="card_content"><div role="row"><div class="cb_title"><h4>Praxis Alpha</h4>Rechnung vom 14.08.2026</div>
+      <div class="cb_status"><span class="badge">${badge}</span></div></div></div></section>`, "/vsInfo/views/KE/einreichungListe.xhtml");
+    const result = await adapter.extractClaims();
+    expect(result.observations).toHaveLength(1);
+    expect(result.observations[0]?.reimbursementAmount).toBe(amount);
+  });
+
   it("OEGK-ADAPTER-001 OEGK-ADAPTER-009 recognizes only origin, path, and landmarks", () => {
     const markup = `<!doctype html><h1>Einreichungen abfragen</h1>
       <form method="post"><a role="tab">Wahlarzt / Wahltherapeut</a>
@@ -123,6 +121,29 @@ describe("OEGK-ADAPTER fixture extraction", () => {
     expect(result.observations[3]?.reimbursementAmount).toBe(94.2);
   });
 
+  it("extracts compact overview rows and ignores display-only or hidden fields", async () => {
+    const adapter = fixture(`<!doctype html><h1>Liste der Einreichungen</h1><form method="post">
+      <input id="vonDat" value="01.01.2026"><input id="bisDat" value="31.12.2026">
+      <section class="card_container"><div class="card_title"><h2>offene Einreichungen</h2></div>
+        <div role="grid" class="card_content"><div role="row">
+          <div class="cb_date">16.08.2026</div><div class="cb_title"><h4>Praxis Morgenstern</h4><span class="invoice">Rechnung vom 14.08.2026</span></div>
+          <div class="cb_status"></div><a class="cb_details" href="/detail.xhtml">›</a><div class="cb_download" aria-disabled="true">PDF</div>
+        </div></div></section>
+      <section class="card_container"><div class="card_title"><h2>erstattete Einreichungen</h2></div>
+        <div role="grid" class="card_content"><div role="row">
+          <div class="cb_date">17.08.2026</div><div class="cb_title"><h4>Praxis Abendrot</h4><span class="invoice">Rechnung vom 15.08.2026</span></div>
+          <div class="cb_status"><span class="badge">Rückerstattung: 80,00 €</span></div><a class="cb_details" href="/detail.xhtml">›</a><div class="cb_download" aria-disabled="true">PDF</div>
+        </div></div></section></form>`, "/vsInfo/views/KE/einreichungListe.xhtml");
+    const result = await adapter.extractClaims();
+    expect(result.observations).toEqual([
+      {
+        status: "processing", source: "oegk", provider: "Praxis Morgenstern",
+        invoiceDate: "2026-08-14",
+      },
+      { status: "completed", source: "oegk", provider: "Praxis Abendrot", invoiceDate: "2026-08-15", reimbursementAmount: 80 },
+    ]);
+  });
+
   it("OEGK-ADAPTER-005 OEGK-ADAPTER-008 OEGK-ADAPTER-010 distinguishes empty, partial, and unsupported", async () => {
     const empty = fixture(`<!doctype html><h1>Liste der Einreichungen</h1><form method="post">
       <div id="infolist" class="infobox yellow" role="alert">In diesem Abfragezeitraum wurde keine Kostenerstattung bzw. kein Onlineantrag gefunden.</div></form>`, "/vsInfo/views/KE/einreichungListe.xhtml");
@@ -152,5 +173,28 @@ describe("OEGK-ADAPTER fixture extraction", () => {
       invoiceAmount: 200, reimbursementAmount: 80, reimbursementDate: "2026-08-20"
     });
     expect(JSON.stringify(result.observations)).not.toContain("REDACTED");
+  });
+
+  it("parses treatment periods on open or rejected details, falling back to treatment-from", async () => {
+    const period = fixture(`<!doctype html><h1>Einreichung Detail</h1><table>
+      <tr><th>Behandler:</th><td>Praxis Morgenstern</td></tr>
+      <tr><th>Rechnungsbetrag:</th><td>120,00 €</td></tr>
+      <tr><th>Behandlungszeitraum:</th><td>01.08.2026 – 03.08.2026</td></tr>
+      <tr><th>Behandlung ab:</th><td>09.08.2026</td></tr>
+      <tr><th>Ablehnungsgrund:</th><td>Leistung nicht umfasst</td></tr>
+      <tr hidden><th>Behandlungszeitraum:</th><td>31.12.2099 – 31.12.2099</td></tr>
+      <tr><th>Person:</th><td>Peter</td></tr><tr><th>Bankverbindung:</th><td>AT00 1234 1234 1234 1234</td></tr>
+      </table>`, "/vsInfo/views/KE/einreichungDetailOA.xhtml");
+    await expect(period.extractClaims()).resolves.toMatchObject({ observations: [{
+      status: "rejected", provider: "Praxis Morgenstern", invoiceAmount: 120,
+      treatmentDate: "2026-08-01", treatmentEndDate: "2026-08-03",
+    }] });
+
+    const fallback = fixture(`<!doctype html><h1>Einreichung Detail</h1><table>
+      <tr><th>Behandler:</th><td>Praxis Abendrot</td></tr><tr><th>Behandlung ab:</th><td>09.08.2026</td></tr>
+      </table>`, "/vsInfo/views/KE/einreichungDetailOA.xhtml");
+    await expect(fallback.extractClaims()).resolves.toMatchObject({ observations: [{
+      status: "processing", provider: "Praxis Abendrot", treatmentDate: "2026-08-09",
+    }] });
   });
 });

@@ -11,5 +11,5 @@ if (runtimeState) runtimeState.className = "runtime-state runtime-state--ready";
 if (runtimeLabel) runtimeLabel.textContent = "Packaged capability";
 if (status) {
   status.textContent =
-    "This package exposes the current-page WebMCP tools on supported Meine SV routes. Opening this dashboard does not inspect a tab or prove that a page is connected or registered.";
+    "This package exposes the current-page WebMCP tools on supported Meine SV routes. Demo pages are synthetic and not official OEGK data. Opening this dashboard does not inspect a tab or prove that a page is connected or registered.";
 }

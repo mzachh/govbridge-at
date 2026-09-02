@@ -78,7 +78,7 @@ describe("GovBridge closed search dates and page catalog", () => {
   });
 
   it("adds the mutating action on the query, entry, and results routes", () => {
-    expect(pageToolCatalog(SEARCH_URL).map(({ name }) => name)).toHaveLength(5);
+    expect(pageToolCatalog(SEARCH_URL).map(({ name }) => name)).toHaveLength(4);
     expect(pageToolCatalog(`${SEARCH_URL}?synthetic=1`).at(-1)?.name).toBe("search_claims");
     expect(pageToolCatalog(ENTRY_URL).at(-1)?.name).toBe("search_claims");
     expect(pageToolCatalog(`${ENTRY_URL}&portal=other`).at(-1)?.name).toBe("search_claims");
@@ -86,7 +86,7 @@ describe("GovBridge closed search dates and page catalog", () => {
     for (const url of [undefined, SEARCH_URL.replace("https:", "http:"), SEARCH_URL.replace("www.meinesv.at", "evil.invalid"),
       SEARCH_URL.replace("einreichungTyp", "einreichungDetailOA"), `${SEARCH_URL}/extra`,
       "https://www.meinesv.at/vsInfo/views/KE/?contentid=other"] ) {
-      expect(pageToolCatalog(url)).toHaveLength(4);
+      expect(pageToolCatalog(url)).toHaveLength(3);
     }
   });
 });

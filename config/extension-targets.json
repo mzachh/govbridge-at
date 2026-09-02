@@ -1,0 +1,8 @@
+{
+  "productionOrigin": "https://www.meinesv.at",
+  "demoOrigin": null,
+  "developmentOrigins": [
+    "http://localhost:4173",
+    "http://127.0.0.1:4173"
+  ]
+}

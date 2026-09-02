@@ -1,6 +1,16 @@
 import { readFile, readdir } from "node:fs/promises";
+import { assertProfile, manifestMatches, readExtensionTargets, requiresDemo } from "./extension-config.mjs";
 
-const root = new URL("../dist/", import.meta.url);
+const profile = process.argv.find((argument) => argument.startsWith("--profile="))?.slice("--profile=".length) ?? "extension";
+assertProfile(profile);
+const targets = await readExtensionTargets();
+const requireDemo = process.argv.includes("--require-demo") || requiresDemo(profile);
+if (requireDemo && !targets.demoOrigin) {
+  throw new Error("Demo audit requires config/extension-targets.json to contain the assigned HTTPS demoOrigin.");
+}
+// Audit the one installable package regardless of the compatibility alias.
+const outdirName = "dist";
+const root = new URL(`../${outdirName}/`, import.meta.url);
 const expected = new Set([
   "PRIVACY.md", "THIRD_PARTY_NOTICES.txt", "content-bridge.js",
   "dashboard.html", "dashboard.js", "manifest.json", "popup.html", "popup.js", "styles.css",
@@ -19,7 +29,7 @@ if ((manifest.permissions?.length ?? 0) !== 0 || "background" in manifest || man
 if ("host_permissions" in manifest || "optional_host_permissions" in manifest || "web_accessible_resources" in manifest) throw new Error("Forbidden manifest capability");
 const main = manifest.content_scripts?.find((entry) => entry.world === "MAIN");
 const relay = manifest.content_scripts?.find((entry) => entry.js?.includes("content-bridge.js"));
-const bridgeMatches = ["https://www.meinesv.at/vsInfo/views/KE/*"];
+const bridgeMatches = manifestMatches(targets);
 if (!main || JSON.stringify(main.js) !== JSON.stringify(["webmcp-main.js"]) ||
     main.world !== "MAIN" || main.run_at !== "document_start" || main.all_frames !== false ||
     !relay || JSON.stringify(relay.js) !== JSON.stringify(["content-bridge.js"]) ||

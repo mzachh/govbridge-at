@@ -1,4 +1,3 @@
-import { summarizeInvoiceYear } from "../domain/claim.js";
 import {
   CLAIM_TOOL_CATALOG,
   isValidClaimToolInput,
@@ -64,16 +63,5 @@ export function createReadOnlyClaimTools(reader: LiveReader): readonly ReadOnlyC
     },
   };
 
-  const getReimbursementSummary: ReadOnlyClaimTool = {
-    ...catalog.get_reimbursement_summary,
-    async execute(input) {
-      if (!isValidClaimToolInput("get_reimbursement_summary", input)) return failure("INVALID_INPUT", "Invalid input.");
-      const year = input.year as number;
-      const result = await reader.read();
-      if (!result.ok) return result;
-      return { ok: true, data: { ...summarizeInvoiceYear(result.data.claims, year), page: result.data.page } };
-    },
-  };
-
-  return Object.freeze([listClaims, getOpenClaims, getClaim, getReimbursementSummary]);
+  return Object.freeze([listClaims, getOpenClaims, getClaim]);
 }

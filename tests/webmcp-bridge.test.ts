@@ -86,7 +86,7 @@ describe("OEGK-BRIDGE-003 semantic agent hint", () => {
     expect(hint.textContent).toContain("search_claims (not read-only)");
     expect(hint.textContent).toContain("does not confirm search success");
     expect(hint.textContent).toContain("Hints alone do not prove callability");
-    expect(document.documentElement.getAttribute("data-oegk-webmcp-tool-count")).toBe("5");
+    expect(document.documentElement.getAttribute("data-oegk-webmcp-tool-count")).toBe("4");
     remove();
   });
   it("publishes only static tool metadata and removes it with the document lifecycle", () => {
@@ -100,10 +100,10 @@ describe("OEGK-BRIDGE-003 semantic agent hint", () => {
     expect(hint.textContent).toContain("list_claims");
     expect(hint.textContent).toContain("get_open_claims");
     expect(hint.textContent).toContain("get_claim");
-    expect(hint.textContent).toContain("get_reimbursement_summary");
+    expect(hint.textContent).not.toContain("get_reimbursement_summary");
     expect(hint.textContent).toContain("document.modelContext.getTools()");
     expect(hint.textContent).not.toContain("provider");
-    expect(document.documentElement.getAttribute("data-oegk-webmcp-tool-count")).toBe("4");
+    expect(document.documentElement.getAttribute("data-oegk-webmcp-tool-count")).toBe("3");
     expect(document.querySelectorAll(`[${AGENT_HINT_ATTRIBUTE}]`)).toHaveLength(1);
     installAgentHint(document)();
     expect(document.querySelectorAll(`[${AGENT_HINT_ATTRIBUTE}]`)).toHaveLength(1);
@@ -250,7 +250,7 @@ describe("OEGK-BRIDGE-001 native-first runtime", () => {
     const result = await startWebMcpBridge(pageDocument, fakeWindow, fallback);
     expect(result.available && result.runtime).toBe(runtime);
     expect(definitions.map(({ name }) => name)).toEqual(pageToolCatalog(fakeWindow.location.href).map(({ name }) => name));
-    expect(definitions.map(({ annotations }) => annotations.readOnlyHint)).toEqual([true, true, true, true, false]);
+    expect(definitions.map(({ annotations }) => annotations.readOnlyHint)).toEqual([true, true, true, false]);
     expect(fallback).toHaveBeenCalledTimes(runtime === "native" ? 0 : 1);
     if (result.available) result.dispose();
   });
@@ -316,7 +316,7 @@ describe("OEGK-BRIDGE-001 native-first runtime", () => {
     expect(result.available && result.runtime).toBe("native");
     expect(fallback).not.toHaveBeenCalled();
     expect(definitions.map(({ name }) => name)).toEqual([
-      "list_claims", "get_open_claims", "get_claim", "get_reimbursement_summary",
+      "list_claims", "get_open_claims", "get_claim",
     ]);
     expect(definitions.every(({ annotations }) => annotations.readOnlyHint)).toBe(true);
     if (result.available) result.dispose();
@@ -336,7 +336,7 @@ describe("OEGK-BRIDGE-001 native-first runtime", () => {
     const result = await startWebMcpBridge(pageDocument, window, fallback);
     expect(result.available && result.runtime).toBe("polyfill");
     expect(fallback).toHaveBeenCalledOnce();
-    expect(definitions).toHaveLength(4);
+    expect(definitions).toHaveLength(3);
     if (result.available) result.dispose();
 
     const unavailable = await startWebMcpBridge({}, window, async () => undefined);

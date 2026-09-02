@@ -1,3 +1,5 @@
+import { resolveSiteContext, SYNTHETIC_DEMO_NOTICE, type SiteBuildProfile, type SiteContext } from "../environment/site-context.js";
+
 export const EMPTY_INPUT_SCHEMA = Object.freeze({
   type: "object",
   properties: Object.freeze({}),
@@ -9,15 +11,6 @@ export const CLAIM_ID_INPUT_SCHEMA = Object.freeze({
   required: Object.freeze(["claimId"]),
   properties: Object.freeze({
     claimId: Object.freeze({ type: "string", minLength: 1, maxLength: 256 }),
-  }),
-  additionalProperties: false,
-});
-
-export const YEAR_INPUT_SCHEMA = Object.freeze({
-  type: "object",
-  required: Object.freeze(["year"]),
-  properties: Object.freeze({
-    year: Object.freeze({ type: "integer", minimum: 2000, maximum: 2100 }),
   }),
   additionalProperties: false,
 });
@@ -37,12 +30,6 @@ export const CLAIM_TOOL_CATALOG = Object.freeze([
     name: "get_claim",
     description: "Read the current OEGK page and find a temporary snapshot claim ID. Never navigates. If NOT_FOUND, list again.",
     inputSchema: CLAIM_ID_INPUT_SCHEMA,
-  }),
-  Object.freeze({
-    name: "get_reimbursement_summary",
-    description:
-      "Read the current OEGK page and sum known amounts for claims with an invoice date in one year. Not account-wide or equivalent to the website search period. Inspect page completeness and known-amount counts.",
-    inputSchema: YEAR_INPUT_SCHEMA,
   }),
 ] as const);
 
@@ -69,10 +56,23 @@ export const SEARCH_TOOL = Object.freeze({
 export const PAGE_TOOL_CATALOG = Object.freeze([...CLAIM_TOOL_CATALOG, SEARCH_TOOL]);
 export type PageToolName = (typeof PAGE_TOOL_CATALOG)[number]["name"];
 
-export function isSearchPageUrl(rawUrl: string | undefined): boolean {
+type PageToolDefinition = (typeof PAGE_TOOL_CATALOG)[number];
+
+function catalogForContext(
+  catalog: readonly PageToolDefinition[],
+  context: SiteContext | undefined,
+): readonly PageToolDefinition[] {
+  if (context?.environment !== "demo") return catalog;
+  return Object.freeze(catalog.map((tool) => Object.freeze({
+    ...tool,
+    description: `${tool.description} ${SYNTHETIC_DEMO_NOTICE} It is not evidence of official medical or financial data provenance.`,
+  }))) as unknown as readonly PageToolDefinition[];
+}
+
+export function isSearchPageUrl(rawUrl: string | undefined, profile?: SiteBuildProfile): boolean {
   try {
     const url = new URL(rawUrl ?? "");
-    return url.origin === "https://www.meinesv.at" &&
+    return resolveSiteContext(url, profile) !== undefined &&
       (url.pathname === SEARCH_PAGE_PATH ||
         (url.pathname === SEARCH_ENTRY_PATH && url.searchParams.get("contentid") === SEARCH_CONTENT_ID));
   } catch {
@@ -80,23 +80,28 @@ export function isSearchPageUrl(rawUrl: string | undefined): boolean {
   }
 }
 
-export function isSearchResultsUrl(rawUrl: string | undefined): boolean {
+export function isSearchResultsUrl(rawUrl: string | undefined, profile?: SiteBuildProfile): boolean {
   try {
     const url = new URL(rawUrl ?? "");
-    return url.origin === "https://www.meinesv.at" && url.pathname === SEARCH_RESULTS_PATH;
+    return resolveSiteContext(url, profile) !== undefined && url.pathname === SEARCH_RESULTS_PATH;
   } catch {
     return false;
   }
 }
 
 /** Routes where the search action is discoverable; execution remains form-scoped. */
-export function isSearchToolUrl(rawUrl: string | undefined): boolean {
-  return isSearchPageUrl(rawUrl) || isSearchResultsUrl(rawUrl);
+export function isSearchToolUrl(rawUrl: string | undefined, profile?: SiteBuildProfile): boolean {
+  return isSearchPageUrl(rawUrl, profile) || isSearchResultsUrl(rawUrl, profile);
 }
 
 /** One shared source for registration and discovery metadata. */
-export function pageToolCatalog(rawUrl?: string): readonly (typeof PAGE_TOOL_CATALOG)[number][] {
-  return isSearchToolUrl(rawUrl) ? PAGE_TOOL_CATALOG : CLAIM_TOOL_CATALOG;
+export function pageToolCatalog(
+  rawUrl?: string,
+  profile?: SiteBuildProfile,
+): readonly (typeof PAGE_TOOL_CATALOG)[number][] {
+  const context = rawUrl === undefined ? undefined : resolveSiteContext(rawUrl, profile);
+  const catalog = isSearchToolUrl(rawUrl, profile) ? PAGE_TOOL_CATALOG : CLAIM_TOOL_CATALOG;
+  return catalogForContext(catalog, context);
 }
 
 export function isPageToolName(value: unknown): value is PageToolName {
@@ -148,6 +153,5 @@ export function isValidClaimToolInput(tool: ClaimToolName, input: unknown): inpu
     return isExactObject(input, ["claimId"]) &&
       typeof input.claimId === "string" && input.claimId.length >= 1 && input.claimId.length <= 256;
   }
-  return isExactObject(input, ["year"]) && typeof input.year === "number" &&
-    Number.isInteger(input.year) && input.year >= 2000 && input.year <= 2100;
+  return false;
 }

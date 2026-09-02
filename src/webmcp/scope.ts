@@ -1,4 +1,5 @@
 import { isSearchPageUrl } from "./catalog.js";
+import { resolveSiteContext, type SiteBuildProfile } from "../environment/site-context.js";
 
 const SUPPORTED_PATHS = new Set([
   "/vsInfo/views/KE/einreichungTyp.xhtml",
@@ -7,12 +8,12 @@ const SUPPORTED_PATHS = new Set([
   "/vsInfo/views/KE/einreichungDetail.xhtml",
 ]);
 
-export function isSupportedMeineSvUrl(rawUrl: string | undefined): boolean {
+export function isSupportedMeineSvUrl(rawUrl: string | undefined, profile?: SiteBuildProfile): boolean {
   if (!rawUrl) return false;
   try {
     const url = new URL(rawUrl);
-    return url.origin === "https://www.meinesv.at" &&
-      (SUPPORTED_PATHS.has(url.pathname) || isSearchPageUrl(url.toString()));
+    return resolveSiteContext(url, profile) !== undefined &&
+      (SUPPORTED_PATHS.has(url.pathname) || isSearchPageUrl(url.toString(), profile));
   } catch {
     return false;
   }

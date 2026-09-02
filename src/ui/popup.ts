@@ -37,7 +37,7 @@ export function renderPopup(root: HTMLElement, model: PopupViewModel = {}): void
   const capabilities = element(document, "ul");
   capabilities.setAttribute("aria-labelledby", heading.id);
   for (const text of [
-    "Vier schreibgeschützte Abfragen für die aktuell gerenderte Seite",
+    "Drei schreibgeschützte Abfragen für die aktuell gerenderte Seite",
     "Eine begrenzte search_claims-Aktion für das Wahlarzt-/Wahltherapeut-Formular",
     "Keine Speicherung, Kontenaggregation oder PDF-/Dokumentabfrage",
   ]) {

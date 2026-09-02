@@ -3,9 +3,12 @@ import { isClaim, type Claim, type ClaimObservation, type ClaimPageKind } from "
 import { isSearchPending } from "../actions/search-claims.js";
 import type { ToolErrorCode, ToolResult } from "../webmcp/types.js";
 import { isSearchPageUrl, SEARCH_PAGE_PATH } from "../webmcp/catalog.js";
+import { resolveSiteContext, type SiteEnvironment } from "../environment/site-context.js";
 
 export interface LivePage {
   scope: "current-page";
+  /** Environment provenance is derived from the approved invoking origin. */
+  environment: SiteEnvironment;
   pageKind: ClaimPageKind;
   readAt: string;
   completeness: "complete" | "partial";
@@ -35,10 +38,11 @@ export class LiveClaimReader implements LiveReader {
     const readAt = new Date().toISOString();
     try {
       const url = new URL(this.pageDocument.URL);
-      if (url.origin !== "https://www.meinesv.at") return failure("UNSUPPORTED_PAGE", "Unsupported OEGK page.");
+      const context = resolveSiteContext(url);
+      if (!context) return failure("UNSUPPORTED_PAGE", "Unsupported OEGK page.");
       if (isSearchPending(this.pageDocument)) return failure("PAGE_NOT_READY", "Search outcome is not yet confirmed. Do not automatically resubmit.");
       const location = { origin: url.origin, pathname: isSearchPageUrl(url.href) ? SEARCH_PAGE_PATH : url.pathname };
-      const result = await new OegkAdapter({ document: this.pageDocument, location }).extractClaims();
+      const result = await new OegkAdapter({ document: this.pageDocument, location, expectedOrigin: context.origin }).extractClaims();
       if (result.state === "unsupported") return failure("UNSUPPORTED_PAGE", "Unsupported OEGK page.");
       if (result.state === "loading" || (result.pageKind === "type-range" && result.state === "complete")) {
         return failure("PAGE_NOT_READY", "The current page has no ready search results.");
@@ -55,7 +59,7 @@ export class LiveClaimReader implements LiveReader {
       // A search may have started while hashing. Never release retained results in that case.
       if (isSearchPending(this.pageDocument)) return failure("PAGE_NOT_READY", "A search is in progress.");
       const page: LivePage = {
-        scope: "current-page", pageKind: result.pageKind, readAt,
+        scope: "current-page", environment: context.environment, pageKind: result.pageKind, readAt,
         completeness: result.diagnostics.skippedCount ? "partial" : "complete",
         skippedCount: result.diagnostics.skippedCount,
         ...(result.observedRange ? { visibleRange: { ...result.observedRange } } : {}),

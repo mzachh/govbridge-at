@@ -18,7 +18,7 @@
         </div>
         <p class="hero-copy">A WebMCP bridge for Austrian government services. The OEGK integration reads claims on demand from the currently rendered Meine SV page and does not retain claim records.</p>
         <ul class="hero-badges" aria-label="Key properties">
-          <li>4 live query tools + 1 bounded search action</li>
+          <li>3 live query tools + 1 bounded search action</li>
           <li>Current page only</li>
           <li>No claim persistence</li>
           <li>No claim submissions</li>
@@ -50,7 +50,7 @@
             <p class="section-kicker">Exposed capability</p>
             <h2 id="tools-heading">OEGK WebMCP tools</h2>
           </div>
-          <span class="read-only-badge">4 queries: readOnlyHint: true</span>
+          <span class="read-only-badge">3 queries: readOnlyHint: true</span>
         </div>
 
         <div class="tool-grid">
@@ -66,7 +66,7 @@
 
           <article class="tool-card">
             <div class="tool-card__top"><span class="method-badge">READ</span><code>list_claims</code></div>
-            <p>Reads the claims rendered on the current page when invoked. It never refreshes, paginates, merges pages, or reads stored history.</p>
+            <p>Reads the compact claims rendered on the current overview when invoked: provider, invoice date, status, and any displayed reimbursement badge. Richer fields remain on detail pages and are never fetched automatically.</p>
             <dl class="tool-contract">
               <div><dt>Input</dt><dd><code>{}</code></dd></div>
               <div><dt>Returns</dt><dd><code>{ claims, count, page }</code> · current-page metadata</dd></div>
@@ -75,7 +75,7 @@
 
           <article class="tool-card">
             <div class="tool-card__top"><span class="method-badge">READ</span><code>get_open_claims</code></div>
-            <p>Reads the current page and filters claims whose status is <code>submitted</code> or <code>processing</code>.</p>
+            <p>Reads the current page and filters compact overview claims whose status is <code>submitted</code> or <code>processing</code>. Displayed reimbursement badges are preserved.</p>
             <dl class="tool-contract">
               <div><dt>Input</dt><dd><code>{}</code></dd></div>
               <div><dt>Returns</dt><dd><code>{ claims, count, page }</code></dd></div>
@@ -91,14 +91,6 @@
             </dl>
           </article>
 
-          <article class="tool-card">
-            <div class="tool-card__top"><span class="method-badge">READ</span><code>get_reimbursement_summary</code></div>
-            <p>Reads the current page and summarizes known invoice and reimbursement amounts by invoice year. It is not account-wide.</p>
-            <dl class="tool-contract">
-              <div><dt>Input</dt><dd><code>{ year: integer, 2000…2100 }</code></dd></div>
-              <div><dt>Returns</dt><dd><code>{ year, claimCount, invoiceAmountKnownCount, reimbursementAmountKnownCount, invoiceTotal, reimbursedTotal, yearBasis, currency, page }</code></dd></div>
-            </dl>
-          </article>
         </div>
       </section>
 
@@ -114,18 +106,31 @@
           <li><span>3</span><strong>WebMCP bridge</strong><small>MAIN-world proxy tools</small></li>
         </ol>
         <p class="architecture-copy">Only canonical Claim fields and page metadata cross the closed bridge. IDs combine a document nonce, a snapshot digest, and row position; they are temporary and expire when the page changes. <code>completeness: "partial"</code> and <code>skippedCount</code> identify malformed rows without exposing page diagnostics.</p>
-        <p class="privacy-note"><strong>PoC boundary:</strong> The current page is not refreshed, paginated, or merged with another page. “Live” means read at invocation time, not newly fetched server data. Displayed ranges do not prove server-query boundaries, and invoice-year summaries use invoice dates. Legacy bytes written by older versions remain untouched and inaccessible to this runtime.</p>
+        <p class="privacy-note"><strong>PoC boundary:</strong> The current page is not refreshed, paginated, or merged with another page. “Live” means read at invocation time, not newly fetched server data. Displayed ranges do not prove server-query boundaries. Legacy bytes written by older versions remain untouched and inaccessible to this runtime.</p>
       </section>
 
       <section class="dashboard-panel" aria-labelledby="workflow-heading">
         <p class="section-kicker">Workflow</p>
-        <h2 id="workflow-heading">Consent, prerequisites and troubleshooting</h2>
+        <h2 id="workflow-heading">Prerequisites and troubleshooting</h2>
         <ul>
-          <li>Complete ID Austria login yourself and open a supported Meine SV OEGK route.</li>
-          <li>Before a sensitive read, confirm that the agent can call the registered tools and that you consent to the current-page fields being returned.</li>
+          <li>For production, complete ID Austria login yourself and open a supported Meine SV OEGK route.</li>
           <li>After <code>search_claims</code>, inspect the resulting page and rediscover tools. Its acknowledgement does not prove that the search succeeded.</li>
           <li>If tools are unavailable, reload the unpacked extension and the Meine SV tab, then inspect native WebMCP or the local compatibility runtime. Hints alone do not prove callability.</li>
           <li>For an expired ID or a changed page, call <code>list_claims</code> again. A plain search mask or unsettled navigation returns <code>PAGE_NOT_READY</code>.</li>
+        </ul>
+      </section>
+
+      <section class="dashboard-panel" aria-labelledby="demo-heading">
+        <p class="section-kicker">Local development · synthetic data</p>
+        <h2 id="demo-heading">GovBridge AT Demo</h2>
+        <p>The separate local simulator contains 20 invented claims for 2021-09-03–2026-09-02. It uses these same extension tools, not a separate fixture API. It is not MeineSV or OEGK.</p>
+        <ul>
+          <li>Build and audit with <code>npm run build</code> and <code>npm run audit</code>; reload the existing unpacked extension from <code>dist/</code> in external Chrome. Do not install a second copy: this one extension supports production and the exact configured demo origins.</li>
+          <li>Start the configured local demo server with <code>npm run demo:dev</code>, then open <code>http://localhost:4173</code>. This panel does not check whether it is running or connected.</li>
+          <li>Demo login only: public username <code>peter</code>, password <code>ThisIsJustADemo$</code>. Never enter a real password. No ID Austria is involved in the synthetic demo.</li>
+          <li>Check <code>page.environment</code>: <code>development</code> or <code>demo</code> means synthetic results. <code>source: "oegk"</code> names the adapter, not official provenance.</li>
+          <li>No hosted demo URL or published download is available. Publication and proposed CC0 fixture licensing are deferred until local verification completes.</li>
+          <li>Do not silently switch between production and demo. Keep operations within the requested environment and current-page scope; temporary IDs still apply.</li>
         </ul>
       </section>
     </main>

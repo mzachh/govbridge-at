@@ -1,17 +1,20 @@
 import { CLAIM_TOOL_CATALOG, isSearchToolUrl, pageToolCatalog } from "./catalog.js";
+import { resolveSiteContext, SYNTHETIC_DEMO_NOTICE } from "../environment/site-context.js";
 
 export const AGENT_HINT_ATTRIBUTE = "data-oegk-webmcp-agent-hint";
 
 export function agentHintText(rawUrl?: string): string {
   const names = CLAIM_TOOL_CATALOG.map(({ name }) => name).join(", ");
+  const context = rawUrl === undefined ? undefined : resolveSiteContext(rawUrl);
   return [
     "WEBMCP AVAILABLE ON THIS PAGE.",
+    ...(context?.environment === "demo" ? [SYNTHETIC_DEMO_NOTICE, "The current page is a public simulator and does not represent official OEGK records."] : []),
     `Registered read-only OEGK tools: ${names}.`,
     ...(isSearchToolUrl(rawUrl) ? ["Also registered: search_claims (not read-only) on the query and results routes; it executes only when the selected Wahlarzt / Wahltherapeut form is present. It returns no claims; submission_requested does not confirm search success or server freshness. Navigation may return null or destroy execution. Never automatically retry an uncertain submission; cancellation cannot undo a dispatched click."] : []),
     "Prefer these structured tools over scraping claim details from the page.",
     "If WebMCP actions are not listed directly, access document.modelContext from the page's MAIN JavaScript world.",
-    "Call document.modelContext.getTools(), inspect each inputSchema, then call document.modelContext.executeTool(toolObject, JSON.stringify(input)).",
-    "Use the tool object returned by getTools(). The four read-only tools extract the current rendered page on every call without refreshing it. No claim history is stored or merged. Check page.completeness and skippedCount; page.visibleRange is displayed controls, not a verified query boundary. IDs expire after content changes or navigation; list again after NOT_FOUND. lastSeen means page read time, not server freshness. Obtain consent before exposing sensitive results. Hints alone do not prove callability.",
+    "Call const tools = await document.modelContext.getTools(), inspect each inputSchema, then call document.modelContext.executeTool(toolObject, JSON.stringify(input)).",
+    "Use the tool object returned by getTools(). The three read-only tools extract the current rendered page on every call without refreshing it. No claim history is stored or merged. Check page.completeness and skippedCount; page.visibleRange is displayed controls, not a verified query boundary. IDs expire after content changes or navigation; list again after NOT_FOUND. lastSeen means page read time, not server freshness. Hints alone do not prove callability.",
   ].join(" ");
 }
 

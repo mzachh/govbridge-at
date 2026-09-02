@@ -40,6 +40,7 @@ const claims: Claim[] = [
 
 const page = {
   scope: "current-page" as const,
+  environment: "production" as const,
   pageKind: "results" as const,
   readAt: "2026-08-30T18:42:00.000Z",
   completeness: "complete" as const,
@@ -95,24 +96,11 @@ describe("live query handler contracts", () => {
     expect(second).toMatchObject({ ok: true, data: { claims: [{ provider: "Aktualisiert" }], page } });
   });
 
-  it("filters open claims and sums only known invoice-year amounts", async () => {
+  it("filters open claims", async () => {
     const tools = createReadOnlyClaimTools(reader());
     const open = await tools.find(({ name }) => name === "get_open_claims")!.execute({});
-    const summary = await tools.find(({ name }) => name === "get_reimbursement_summary")!.execute({ year: 2026 });
 
     expect(open).toMatchObject({ ok: true, data: { count: 1, claims: [{ id: claims[0]!.id }], page } });
-    expect(summary).toMatchObject({
-      ok: true,
-      data: {
-        year: 2026,
-        claimCount: 2,
-        invoiceAmountKnownCount: 2,
-        reimbursementAmountKnownCount: 1,
-        invoiceTotal: 425,
-        reimbursedTotal: 94.2,
-        page,
-      },
-    });
   });
 
   it("validates inputs before a live read and resolves only current temporary IDs", async () => {
@@ -140,7 +128,7 @@ describe("live query handler contracts", () => {
 });
 
 describe("page registration and technical dashboard", () => {
-  it("registers exactly the four packaged read-only query capabilities", async () => {
+  it("registers exactly the three packaged read-only query capabilities", async () => {
     const definitions: WebMcpToolDefinition[] = [];
     const result = await registerPageTools(
       { modelContext: { async registerTool(tool) { definitions.push(tool); } } },
@@ -152,7 +140,6 @@ describe("page registration and technical dashboard", () => {
       "list_claims",
       "get_open_claims",
       "get_claim",
-      "get_reimbursement_summary",
     ]);
     expect(definitions.every(({ annotations }) => annotations.readOnlyHint)).toBe(true);
     if (result.available) result.dispose();
@@ -166,7 +153,6 @@ describe("page registration and technical dashboard", () => {
       "list_claims",
       "get_open_claims",
       "get_claim",
-      "get_reimbursement_summary",
     ]);
     expect(page.body.textContent).toContain("current page");
     expect(page.body.textContent).toContain("temporary");

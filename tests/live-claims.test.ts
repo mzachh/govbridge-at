@@ -7,6 +7,7 @@ import { searchClaims } from "../src/actions/search-claims.js";
 import { installContentBridge } from "../src/webmcp/content-bridge.js";
 import { createBridgeRequest } from "../src/webmcp/protocol.js";
 import type { ToolResult } from "../src/webmcp/types.js";
+import type { Claim } from "../src/domain/claim.js";
 import { isSupportedMeineSvUrl } from "../src/webmcp/scope.js";
 
 const root = "https://www.meinesv.at/vsInfo/views/KE/";
@@ -54,7 +55,7 @@ describe("invocation-local data and identity", () => {
     expect(await tools(doc)("get_claim", { claimId: first.claims[0]!.id })).toMatchObject({ error: { code: "NOT_FOUND" } });
     doc.querySelectorAll('[role="row"]')[1]!.remove();
     expect((await read(doc)).claims).toHaveLength(1);
-    expect(success(await tools(doc)("get_claim", { claimId: (await read(doc)).claims[0]!.id }))).toHaveProperty("page.scope", "current-page");
+    expect(success(await tools(doc)("get_claim", { claimId: (await read(doc)).claims[0]!.id }))).toHaveProperty("page.environment", "production");
   });
 
   it("keeps duplicate rows distinct, ignores excluded fields for identity, and never shares IDs or data across documents", async () => {
@@ -122,16 +123,37 @@ describe("explicit live states", () => {
 });
 
 describe("query contracts and excluded data", () => {
-  it("filters and totals only this invocation, with known counts and partial disclosure", async () => {
+  it("filters only this invocation and preserves partial disclosure", async () => {
     const doc = page('<h1>Liste der Einreichungen</h1>' + section(row()) + section(row("Paid", "02.03.2026", "40,20") + row("Other year", "02.03.2025", "90") + '<div role="row">Malformed</div>', "erstattete Einreichungen"));
     const invoke = tools(doc);
     expect(success(await invoke("list_claims"))).toMatchObject({ count: 3 });
     expect(success(await invoke("get_open_claims"))).toMatchObject({ count: 1, claims: [{ status: "processing" }], page: { completeness: "partial" } });
-    expect(success(await invoke("get_reimbursement_summary", { year: 2026 }))).toMatchObject({ year: 2026, claimCount: 2, invoiceTotal: 0, invoiceAmountKnownCount: 0, reimbursedTotal: 40.2, reimbursementAmountKnownCount: 1, yearBasis: "invoiceDate", currency: "EUR", page: { scope: "current-page", completeness: "partial" } });
-    doc.querySelector(".badge")!.textContent = "Rückerstattung: 50,00 €";
-    expect(success(await invoke("get_reimbursement_summary", { year: 2026 }))).toHaveProperty("reimbursedTotal", 50);
     doc.querySelector(".card_container")!.remove();
     expect(success(await invoke("get_open_claims"))).toMatchObject({ count: 0, claims: [] });
+  });
+
+  it("keeps compact overview fields sparse across list, open, and get", async () => {
+    const openRow = `<div role="row"><div class="cb_date">16.08.2026</div><div class="cb_title"><h4>Praxis Morgenstern</h4><span class="invoice">Rechnung vom 14.08.2026</span></div><div class="cb_status"></div><a class="cb_details" href="/detail.xhtml">›</a><div class="cb_download" aria-disabled="true">PDF</div></div>`;
+    const paidRow = `<div role="row"><div class="cb_date">17.08.2026</div><div class="cb_title"><h4>Praxis Abendrot</h4><span class="invoice">Rechnung vom 15.08.2026</span></div><div class="cb_status"><span class="badge">Rückerstattung: 80,00 €</span></div><a class="cb_details" href="/detail.xhtml">›</a><div class="cb_download" aria-disabled="true">PDF</div></div>`;
+    const doc = page('<h1>Liste der Einreichungen</h1>' + section(openRow) + section(paidRow, "erstattete Einreichungen"));
+    const invoke = tools(doc);
+    const listed = success(await invoke("list_claims")) as { claims: Claim[]; count: number };
+    expect(listed.claims[0]).toMatchObject({
+      provider: "Praxis Morgenstern", invoiceDate: "2026-08-14", status: "processing",
+    });
+    expect(listed.claims[0]).not.toHaveProperty("invoiceAmount");
+    expect(listed.claims[0]).not.toHaveProperty("treatmentDate");
+    expect(listed.claims[0]).not.toHaveProperty("reimbursementDate");
+    expect(listed.claims[1]).toMatchObject({
+      provider: "Praxis Abendrot", invoiceDate: "2026-08-15", status: "completed", reimbursementAmount: 80,
+    });
+    const open = success(await invoke("get_open_claims"));
+    expect(open).toMatchObject({ count: 1, claims: [{
+      provider: "Praxis Morgenstern", invoiceDate: "2026-08-14", status: "processing",
+    }] });
+    expect(success(await invoke("get_claim", { claimId: listed.claims[0]!.id }))).toMatchObject({ claim: {
+      id: listed.claims[0]!.id, provider: "Praxis Morgenstern", invoiceDate: "2026-08-14", status: "processing",
+    } });
   });
 
   it("reads a detail singleton without earlier list enrichment or sensitive table values", async () => {
@@ -160,9 +182,10 @@ describe("query contracts and excluded data", () => {
   it("rejects malformed inputs before reading and redacts extraction failures", async () => {
     const extract = vi.spyOn(OegkAdapter.prototype, "extractClaims");
     const invoke = tools(page());
-    for (const [name, input] of [["list_claims", { extra: true }], ["get_open_claims", null], ["get_claim", {}], ["get_reimbursement_summary", { year: 1999 }]]) {
+    for (const [name, input] of [["list_claims", { extra: true }], ["get_open_claims", null], ["get_claim", {}]]) {
       expect(await invoke(name as string, input)).toMatchObject({ error: { code: "INVALID_INPUT" } });
     }
+    expect(createReadOnlyClaimTools(new LiveClaimReader(page())).some(({ name }) => name === "get_reimbursement_summary")).toBe(false);
     expect(extract).not.toHaveBeenCalled();
     extract.mockRejectedValue(new Error("SECRET PAGE DATA"));
     const result = await invoke("list_claims");

@@ -1,5 +1,9 @@
 # 012 — Live claim tools (normative)
 
+Spec 017 supersedes the reimbursement-summary tool and older tool counts here;
+three query tools remain, with richer visible fields and no skill-level consent
+prompt for related requested tool operations. Current-page-only scope is unchanged.
+
 This specification supersedes storage, reconciliation, history, automatic
 observation, background claim execution and stored-data UI/skill requirements in
 specs 000–011. Existing bounded search actions and native/polyfill registration
@@ -43,6 +47,7 @@ Successful query `page` metadata:
 ```ts
 {
   scope: "current-page";
+  environment: "production" | "demo" | "development";
   pageKind: "type-range" | "results" | "open-rejected-detail" | "reimbursed-detail";
   readAt: string; // ISO UTC, invocation time
   completeness: "complete" | "partial";
@@ -55,6 +60,39 @@ Complete means the rendered rows were parsed, not account-wide coverage or that
 all fields/amounts are known. Pagination remains current-page only. Live means
 read at invocation time, not newly refreshed server data. Displayed dates do not
 prove server-query boundaries, nor equal the invoice-year aggregation basis.
+
+## Approved environments and synthetic server
+
+Resolve environments from checked extension build configuration, never page
+flags, URL parameters, or globals. Production remains exactly
+`https://www.meinesv.at`. An explicitly configured demo HTTPS origin and fixed
+development loopback origins may use the same supported paths and extraction
+implementation. MAIN registration, ISOLATED readers, adapter construction, and
+manifest generation must share that policy. Search destinations must match the
+invoking approved origin and expected route, not merely another approved origin.
+
+Successful query `page.environment` provides origin-derived provenance;
+`source: "oegk"` names the adapter, not official provenance. Synthetic tool
+descriptions and UI guidance must identify the demo. The server must not
+register competing claim tools or provide fixtures directly to tool handlers.
+Current-page scope, temporary IDs, loading precedence and one-dispatch locks
+remain unchanged in every environment.
+
+The separate local simulator defaults to 20 independently invented records,
+reference date `2026-09-02`, range `2021-09-03`–`2026-09-02`, with public demo
+credentials `username` / `password` and no ID Austria. Its documented search
+basis is inclusive invoice date; this does not establish production semantics.
+Demo login is not a confidentiality boundary. The extension does not manage
+its website cookie. No consent transfers between origins or environments.
+
+`config/extension-targets.json` currently leaves `demoOrigin` null. One `dist/`
+package supports production, exact `http://localhost:4173` and
+`http://127.0.0.1:4173` origins, and a future explicitly configured hosted demo.
+Reload the existing unpacked extension; do not require a separate development
+build or second installation. Runtime checks retain exact origin and port
+validation, and unconfigured hosted origins fail closed. No hosted URL is available. Public
+publication and proposed CC0 fixture licensing are deferred until local
+verification completes and must not be inferred from source preparation.
 
 ## Page state precedence
 

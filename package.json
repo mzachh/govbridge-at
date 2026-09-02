@@ -8,11 +8,19 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "build": "node scripts/build.mjs",
+    "build:demo": "node scripts/build.mjs --require-demo",
+    "build:dev": "npm run build",
     "audit": "node scripts/audit.mjs",
-    "verify": "npm run typecheck && npm test && npm run build && npm run audit"
+    "audit:demo": "node scripts/audit.mjs --require-demo",
+    "audit:dev": "npm run audit",
+    "verify": "npm run typecheck && npm test && npm run build && npm run audit",
+    "demo:dev": "npm --prefix demo-site run dev",
+    "demo:test": "npm --prefix demo-site test",
+    "demo:verify": "npm run verify && npm --prefix demo-site run verify"
   },
   "devDependencies": {
     "@types/chrome": "0.1.32",
+    "@types/jsdom": "^30.0.0",
     "@types/node": "24.3.0",
     "esbuild": "0.25.9",
     "jsdom": "26.1.0",

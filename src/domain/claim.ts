@@ -190,31 +190,3 @@ export function compareClaims(a: Claim, b: Claim): number {
 export function sortClaims(claims: readonly Claim[]): Claim[] {
   return [...claims].sort(compareClaims);
 }
-
-export interface ReimbursementSummary {
-  year: number;
-  claimCount: number;
-  invoiceAmountKnownCount: number;
-  reimbursementAmountKnownCount: number;
-  invoiceTotal: number;
-  reimbursedTotal: number;
-  yearBasis: "invoiceDate";
-  currency: "EUR";
-}
-
-export function summarizeInvoiceYear(claims: readonly Claim[], year: number): ReimbursementSummary {
-  if (!Number.isInteger(year) || year < 2000 || year > 2100) throw new RangeError("Invalid summary year.");
-  const matching = claims.filter((claim) => claim.invoiceDate?.startsWith(`${year}-`));
-  const invoice = matching.flatMap((claim) => claim.invoiceAmount === undefined ? [] : [claim.invoiceAmount]);
-  const reimbursed = matching.flatMap((claim) => claim.reimbursementAmount === undefined ? [] : [claim.reimbursementAmount]);
-  const sum = (values: number[]) => Math.round(values.reduce((total, amount) => total + amount, 0) * 100) / 100;
-  return {
-    year, claimCount: matching.length,
-    invoiceAmountKnownCount: invoice.length,
-    reimbursementAmountKnownCount: reimbursed.length,
-    invoiceTotal: sum(invoice), reimbursedTotal: sum(reimbursed),
-    yearBasis: "invoiceDate", currency: "EUR"
-  };
-}
-
-export const summarizeClaimsByInvoiceYear = summarizeInvoiceYear;
