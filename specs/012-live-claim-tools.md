@@ -115,19 +115,14 @@ allowlisted observations (excluding timestamps), and row index form each
 document retains IDs; changed normalized snapshot content or navigation expires
 them. Only a nonce and structural search state may persist in memory, never claim
 records. `get_claim` returns `NOT_FOUND` for absent/expired IDs; callers list again.
-`lastSeen` remains for compatibility and equals this invocation's `readAt`.
-Legacy `local-v1-*` IDs are not resolved.
+`lastSeen` equals this invocation's `readAt`.
 
-## Runtime and UI removal
+## Runtime and UI
 
-Remove storage APIs/permission, stored-state types, reconciliation/status history,
-automatic extraction/observer/rearm entrypoints, runtime claim messages and the
-service worker. Popup opens its dashboard directly; neither UI reads claim data.
-Show packaged tool capabilities, architecture, consent, prerequisites and
-troubleshooting, never infer page connection/registration from dashboard opening.
-Build removes obsolete `background.js` and `content.js` before packaging. Legacy
-stored bytes are unused and untouched; removal of this feature does not erase
-data previously written by older versions.
+The extension has no storage APIs, no service worker, and no claim persistence.
+Popup opens its dashboard directly; neither UI reads claim data. Show packaged
+tool capabilities, architecture, consent, prerequisites and troubleshooting,
+never infer page connection/registration from dashboard opening.
 
 ## Skill and verification
 

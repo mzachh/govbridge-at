@@ -2,7 +2,7 @@
 
 > **Status: historical / not current.** This specification predates the live
 > current-page contract and remains as design history. [Spec 012 — Live claim
-> tools](012-live-claim-tools.md) is normative where requirements differ.
+> tools](../012-live-claim-tools.md) is normative where requirements differ.
 
 The GovBridge AT extension adds one narrowly scoped form action under
 `011-govbridge-at-skill.md`. The four existing storage-query contracts remain

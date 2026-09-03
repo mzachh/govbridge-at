@@ -42,7 +42,7 @@ Exact origin configuration drives manifest and runtime checks. Production remain
 www.meinesv.at; hosted demo origin is recorded only from Sites; development permits
 explicit loopback port 4173. Search destinations must match the invoking origin,
 not another approved environment. Query `page.environment` identifies synthetic
-data. Legacy storage remains unused and untouched.
+data.
 
 User-approved PoC packaging revision: one existing `dist/` extension supports all
 explicit approved origins, including loopback port 4173. No second development

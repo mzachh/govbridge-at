@@ -156,7 +156,6 @@ describe("page registration and technical dashboard", () => {
     ]);
     expect(page.body.textContent).toContain("current page");
     expect(page.body.textContent).toContain("temporary");
-    expect(page.body.textContent).toContain("Legacy bytes");
     expect(page.body.textContent).toContain("readOnlyHint: false");
     expect(page.body.textContent).toContain("submission_requested");
     expect(page.body.textContent).toContain("document.modelContext");

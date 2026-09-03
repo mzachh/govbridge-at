@@ -110,8 +110,7 @@ metadata. Each `live-v1-*` ID combines a random document nonce, a canonical
 snapshot digest, and row position. IDs are temporary: unchanged content in one
 document can retain them, while changed content or navigation expires them.
 `get_claim` does not navigate and returns `NOT_FOUND` for an absent or expired
-ID; callers must list the current page again. Legacy `local-v1-*` IDs are never
-resolved.
+ID; callers must list the current page again.
 
 This PoC bridge is deliberately not an authenticated or isolated channel.
 Scripts running on the matched OEGK page can observe or race request and
@@ -124,11 +123,6 @@ popup and dashboard do not read active-tab claim data, storage, or runtime claim
 messages. The dashboard describes packaged capabilities, current-page scope,
 temporary IDs, partial results, task scope, and troubleshooting; opening it does
 not prove a page connection or registration.
-
-Older versions may have written bytes under the legacy key
-`oegkClaimTracker.state.v1`. The live implementation does not read, migrate,
-delete, or display those bytes. They remain untouched and inaccessible to this
-runtime. Removing the storage feature does not erase those legacy bytes.
 
 For local diagnosis, the extension writes only structural readiness labels to
 attributes on the supported page's root element. These labels contain bridge

@@ -2,7 +2,7 @@
 
 > **Status: historical / not current.** This specification predates the live
 > current-page contract and remains as design history. [Spec 012 — Live claim
-> tools](012-live-claim-tools.md) is normative where requirements differ.
+> tools](../012-live-claim-tools.md) is normative where requirements differ.
 
 These four query contracts remain unchanged. The additional page-scoped
 `search_claims` action is specified in `011-govbridge-at-skill.md`; blanket

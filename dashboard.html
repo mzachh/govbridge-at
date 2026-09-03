@@ -98,7 +98,7 @@
         <div>
           <p class="section-kicker">Data boundary</p>
           <h2 id="architecture-heading">Live, page-scoped reads</h2>
-          <p class="architecture-copy">Every query invokes the isolated live reader for the current document. No claim snapshot, observation history, or browser storage is created by this extension version.</p>
+          <p class="architecture-copy">Every query invokes the isolated live reader for the current document. No claim snapshot, observation history, or browser storage is created by this extension.</p>
         </div>
         <ol class="data-flow" aria-label="Data flow">
           <li><span>1</span><strong>Meine SV DOM</strong><small>rendered current page</small></li>
@@ -106,7 +106,7 @@
           <li><span>3</span><strong>WebMCP bridge</strong><small>MAIN-world proxy tools</small></li>
         </ol>
         <p class="architecture-copy">Only canonical Claim fields and page metadata cross the closed bridge. IDs combine a document nonce, a snapshot digest, and row position; they are temporary and expire when the page changes. <code>completeness: "partial"</code> and <code>skippedCount</code> identify malformed rows without exposing page diagnostics.</p>
-        <p class="privacy-note"><strong>PoC boundary:</strong> The current page is not refreshed, paginated, or merged with another page. “Live” means read at invocation time, not newly fetched server data. Displayed ranges do not prove server-query boundaries. Legacy bytes written by older versions remain untouched and inaccessible to this runtime.</p>
+        <p class="privacy-note"><strong>PoC boundary:</strong> The current page is not refreshed, paginated, or merged with another page. “Live” means read at invocation time, not newly fetched server data. Displayed ranges do not prove server-query boundaries.</p>
       </section>
 
       <section class="dashboard-panel" aria-labelledby="workflow-heading">
