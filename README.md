@@ -242,9 +242,12 @@ history. It also explains temporary IDs, unknown fields, supported-tab reuse,
 English conversation by default, and the private-insurance roadmap boundary.
 
 Any browser agent with native WebMCP support can discover and call the tools.
-CDP is only a fallback transport when the connected browser does not expose
-native WebMCP, and the skill never uses it for page inspection. DOM hints are
-discovery metadata only, not an execution channel.
+The ChatGPT app's Chrome extension does not yet expose WebMCP tools directly,
+so our integration currently requires CDP to discover and call them. This
+dependency is outside our control. We expect direct WebMCP access to become
+available in the future, which would remove the need for CDP in this workflow.
+The skill never uses CDP for page inspection. DOM hints are discovery metadata
+only, not an execution channel.
 
 ## Privacy boundary
 
@@ -258,3 +261,9 @@ This is a PoC boundary, not an authenticated channel. Scripts running on the
 matched OEGK page can observe or race MAIN-world bridge messages and invoke the
 bounded search action. The skill's task scope is not an in-page access-control
 mechanism.
+
+## License
+
+GovBridge AT's original extension, demo server, skill, documentation, and
+fictional fixtures are licensed under the [MIT License](LICENSE).
+Third-party components retain their own licenses and notices.

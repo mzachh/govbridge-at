@@ -95,8 +95,9 @@ production and a synthetic origin.
 The synthetic demo is publicly reachable at
 `https://govbridge-at-demo.manuel857067.chatgpt.site`, as approved by the user.
 Its fictional claim pages use the public demo credentials; this is a simulation,
-not protection suitable for real medical data. The proposed CC0 fixture license
-has not been granted. No real account data was published.
+not protection suitable for real medical data. The fictional fixtures are
+licensed under MIT, replacing the earlier CC0 proposal. No real account data
+was published.
 
 On supported OEGK pages, the extension registers three read-only WebMCP query
 tools in the page's MAIN JavaScript world. The type/range and retained-results

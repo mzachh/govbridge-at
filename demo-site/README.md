@@ -26,7 +26,7 @@ Vinext's generated Worker entry delegates catch-all route requests to `server/ha
 
 Server-side HMAC cookies last one hour, use HttpOnly/SameSite=Lax, and Secure on HTTPS. A documented fallback signing key exists only on exact loopback port 4173. Hosting requires a unique `DEMO_SESSION_SECRET` runtime secret (32+ characters); configure it in Sites, never in source or hosting metadata. This public-credential simulation is not suitable for real records. Static assets contain no claim dataset; rendered pages use no-store, and history restoration revalidates the session.
 
-No official logos/assets are copied. Local CSS recreates measured visual properties using system-font alternatives. `fixtures/PROVENANCE.md` records independent authorship. Fixture CC0 licensing and publication are not yet approved.
+No official logos/assets are copied. Local CSS recreates measured visual properties using system-font alternatives. `fixtures/PROVENANCE.md` records independent authorship. Original demo code, documentation and fictional fixtures use the [MIT License](LICENSE). Third-party components retain their own licenses and notices.
 
 ## Hosting gate
 

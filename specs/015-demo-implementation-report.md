@@ -1,6 +1,14 @@
 # GovBridge AT Demo — local implementation evidence
 
-Date: 2026-09-02. Status: publicly deployed demo; final installed-extension gate pending.
+Updated: 2026-09-03. Status: publicly deployed demo; installed-extension verification complete, confirmed by the user.
+
+## Verification status confirmed on 2026-09-03
+
+The user confirmed that verification is complete and that the installed-extension
+gate below was stale documentation. That gate is closed. Earlier observations
+remain as historical evidence of their individual test runs, not current blockers.
+This documentation correction records the user's confirmation; it does not claim
+a new automated test run or browser verification by the assistant.
 
 ## 2026-09-03 privacy and fixture correction (deployed)
 
@@ -39,8 +47,8 @@ Date: 2026-09-02. Status: publicly deployed demo; final installed-extension gate
   Only structural evidence was retained; cookies and secret values were not saved.
 - The exact assigned origin is configured in the single extension build. All 151
   extension tests, typecheck, build and package audit passed with hosted scope.
-  Reload `dist/` before testing WebMCP on the hosted site. HTTP verification does
-  not establish installed-extension tool callability. Fixture licensing remains
+  HTTP verification alone does not establish installed-extension tool callability.
+  The completed verification status is recorded above. Fixture licensing remains
   unchanged; no real claim data was deployed.
 
 ## Implemented
@@ -78,18 +86,18 @@ Date: 2026-09-02. Status: publicly deployed demo; final installed-extension gate
 - Skill discovery snippet executed against synchronous and async-array registries, including malformed-registry and missing-tool failures. Repository and installed skill/metadata copies match. Manual scenario review covered retained results searches, detail summaries, English conversation on German pages, requested reads without extra consent, and the private-insurance roadmap response.
 - Chrome demo login succeeded and rendered 20 records. Native submitter `.click()` through the supported developer capability navigated from type to results with 20 records. This is a form integration check, **not** a successful WebMCP invocation.
 - Chrome expired-session route and subsequent protected deep link both returned the login page with zero claim rows. Browser Back after expiry also showed login; a specific BFCache restoration is not established by that observation.
-- Visual review: desktop login, search, results, reimbursed detail, explicit empty and validation layouts; mobile search at 390×844. No production screenshots or claim contents were saved. Mobile detail requires a final screenshot recheck after overflow wrapping changes. The simulator is not asserted pixel-identical to production.
+- Visual review: desktop login, search, results, reimbursed detail, explicit empty and validation layouts; mobile search at 390×844. No production screenshots or claim contents were saved. A mobile-detail screenshot recheck after overflow wrapping changes was not recorded in this historical review pass. The simulator is not asserted pixel-identical to production.
 - Bilingual revision: English results and the exact new header checked in Chrome at desktop and 390×844 mobile widths. English → German → English switching retained the current date-range/scenario query. Temporary viewport emulation was restored. This verifies presentation/navigation, not an installed-extension WebMCP call.
 - Site typecheck and Worker build passed. Generated `dist/server/index.js` has a default object exposing `fetch`; route table includes the catch-all API handler.
 - Dependency review: patched the starter's React/Vinext/Vite and Cloudflare tooling together with required peers. `npm audit` reported zero vulnerabilities after updates. Removed unused generated UI components and dependencies; this discarded only scaffold files, reproducible from the pinned initializer.
 - Fixed a Chrome native-login failure caused by `Referrer-Policy: no-referrer` producing a null Origin. `same-origin` now preserves same-origin POST validation without accepting null or foreign origins.
 
-## Current gates and deliberate deferrals
+## Verification closure and deliberate deferrals
 
-1. User requested **one extension only**: implemented and audited. Normal `dist/` includes production and exact local demo origins; do not require another development installation. Old `build:dev`/`audit:dev` commands are aliases for the same package. Stale generated `dist-dev/` was removed; it contained no source or user data and can be recreated from source if ever needed. Reload the existing unpacked extension before the installed-tool check.
-2. Last live discovery on localhost found `document.modelContext` but no registered tools. Actual calls to the current four tools, mutation-driven reread, tool-based search navigation and same-document AJAX remain pending the rebuilt extension reload. No injected bridge or fixture API was used to fake this gate.
+1. User requested **one extension only**: implemented and audited. Normal `dist/` includes production and exact local demo origins; do not require another development installation. Old `build:dev`/`audit:dev` commands are aliases for the same package. Stale generated `dist-dev/` was removed; it contained no source or user data and can be recreated from source if ever needed.
+2. **Closed on 2026-09-03, based on user confirmation:** installed-extension verification is complete. The earlier localhost discovery that found `document.modelContext` but no registered tools is historical, not a current blocker. The former pending gate covering the four tool calls, mutation-driven reread, tool-based search navigation and same-document AJAX is superseded by that confirmation. No new test execution is asserted by this report update.
 3. The earlier local-only publication deferral was lifted for the demo server; see the hosted rollout above. Release ZIP/checksum and absolute hosted social metadata remain deferred.
-4. CC0-1.0 is only proposed for the newly invented fixture data; it has not been granted. No public repository was created.
+4. On 2026-09-03 the user selected MIT for the original project, including fictional fixtures, replacing the earlier CC0 proposal. Root and standalone demo LICENSE files and package metadata now declare MIT. Third-party licenses remain unchanged. Local licensing changes still need to be pushed to the public repository.
 5. Formal personal-skill validation was unavailable because PyYAML is missing. Frontmatter, paths, workflow separation and matching installed copy were checked manually.
 
 ## Reproduce
