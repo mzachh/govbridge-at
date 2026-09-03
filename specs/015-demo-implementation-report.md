@@ -2,6 +2,31 @@
 
 Date: 2026-09-02. Status: publicly deployed demo; final installed-extension gate pending.
 
+## 2026-09-03 privacy and fixture correction (deployed)
+
+- Spec 019 adds EUR 51.30 to fictional claim 017; default reimbursement total
+  becomes EUR 543.40 across eleven completed claims. Dedicated missing-fields
+  scenarios still omit amounts. No real account was inspected.
+- `get_claim` already preserves detail-page `invoiceAmount`; a new regression
+  verifies its response includes the amount while excluding social-security and
+  bank fields/values. No fetch, navigation or runtime contract change was needed.
+- The repository and installed skill now prohibit all agent-side page-content
+  inspection; native WebMCP is preferred and CDP is limited to WebMCP calls.
+  An independent read-only scenario review covered unselected category, lost
+  search response, absent overview invoice amount, and missing tools on details.
+- Verification passed: 152 extension tests, 34 demo tests, both typechecks/builds,
+  package audit, and whitespace checks. Installed skill matches the repository.
+  The skill validator could not run because PyYAML is unavailable; manual review
+  and independent behavioral review were completed instead.
+- After the user's deployment approval, Sites version 2 deployed successfully
+  to https://govbridge-at-demo.manuel857067.chatgpt.site with unchanged public
+  access and demo login. Source: `33376d1a64a9b167c8d2492f28ca537a2a98ba84`;
+  deployment: `appgdep_6a99122a82d8819196ffdb1f4d4aa2d2`.
+  The 34 demo tests, typecheck and build passed again before publication.
+  Deployment success is confirmed by Sites; no browser page content,
+  credential storage, screenshots or live claim details were read. This rollout
+  does not implement overview-to-detail fetching or establish live WebMCP calls.
+
 ## Hosted rollout
 
 - Public deployment succeeded at https://govbridge-at-demo.manuel857067.chatgpt.site
@@ -27,7 +52,7 @@ Date: 2026-09-02. Status: publicly deployed demo; final installed-extension gate
 
 - Separate Sites/Vinext project in `demo-site/`; canonical entry, type, results and both detail `.xhtml` routes use real HTTP handlers and native forms.
 - Public `peter` / `ThisIsJustADemo$` simulation login (spec 017), signed one-hour cookie, same-origin POST checks, bounded body/query input, safe return destinations, no-store pages, logout/expiry and history-revalidation script. The former credentials are rejected.
-- Twenty independently authored synthetic claims, fixed 2021-09-03–2026-09-02 range, 5 processing / 11 completed / 4 rejected. Ten known reimbursements total EUR 492.10; one completed record intentionally has unknown reimbursement. Duplicate-looking rows have distinct fixture keys.
+- Twenty independently authored synthetic claims, fixed 2021-09-03–2026-09-02 range, 5 processing / 11 completed / 4 rejected. Spec 019 corrects claim 017: eleven known reimbursements now total EUR 543.40. Unknown amounts remain covered by the explicit missing-fields scenario. Duplicate-looking rows have distinct fixture keys.
 - Required scenario catalog, developer-only in-document mutations, and bounded AJAX handlers. Unrecognized/failed/text-only AJAX outcomes remain visibly busy rather than exposing retained rows as a confirmed result.
 - Same extension adapter, live reader, search executor and bridge; no website implementation of the three query tools and search action. Explicit origin/provenance checks preserve production isolation and no claim persistence. Spec 017 removes the reimbursement-summary tool; spec 018 keeps richer fields on detail pages rather than compact overview rows.
 - Measured official visual language, independently authored CSS, system-font alternatives, no official artwork, and conspicuous synthetic branding. Social preview image contains no private data.

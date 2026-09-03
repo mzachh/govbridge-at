@@ -49,11 +49,19 @@ approvals remain authoritative.
 
 ## Synthetic simulator
 
+The GovBridge AT skill does not inspect page content, including structural DOM
+markers, screenshots, accessibility trees or form values. It reads only browser
+tab URL/capability metadata and WebMCP schemas/results. CDP, when necessary, is
+restricted by the skill to WebMCP discovery and invocation. Local extension
+parsing returns allowlisted claim fields without social security or bank data.
+This minimizes what reaches the agent; it is a workflow rule, not a technical
+sandbox that removes CDP's underlying capabilities.
+
 The separate `demo-site/` application uses independently invented fixtures, not
 exported, renamed, or anonymized account records. Its default page contains 20
 synthetic claims in the fixed range `2021-09-03`–`2026-09-02`, with 5 processing,
-11 completed, and 4 rejected records, duplicate examples, date coverage, and 10
-known reimbursements totaling EUR 492.10. The demo's header is exactly
+11 completed, and 4 rejected records, duplicate examples, date coverage, and 11
+known reimbursements totaling EUR 543.40. The demo's header is exactly
 `GovBridge AT: OEGK (meinesv.at) demo server`, and its persistent notice states
 that the records are fictional and the site is not MeineSV or OEGK. The same
 extension parser and tools read its rendered pages.

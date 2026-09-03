@@ -4,6 +4,11 @@
 > current-page contract and remains as design history. [Spec 012 — Live claim
 > tools](012-live-claim-tools.md) is normative where requirements differ.
 
+Spec 019 supersedes any agent-side structural/page-marker inspection below:
+the agent consumes only tab URL/capability metadata and WebMCP responses. CDP
+fallback is solely for WebMCP discovery/calls. The extension, not the agent,
+inspects forms and page states locally.
+
 ## Product and compatibility
 
 The product is GovBridge AT; the package and Codex skill are `govbridge-at`.

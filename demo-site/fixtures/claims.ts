@@ -29,7 +29,7 @@ const rows: Array<[string, string, DemoClaim['status'], number, number?]> = [
   ['Praxis am Park — Physiotherapie', '2025-01-13', 'completed', 260, 92.4],
   ['Dr. Paul Wieser — Innere Medizin', '2025-04-21', 'completed', 195, 70.2],
   ['Dr. Nora Leitner — Neurologie', '2025-07-09', 'processing', 220],
-  ['Dr. Lena Berg — Dermatologie', '2025-10-27', 'completed', 145],
+  ['Dr. Lena Berg — Dermatologie', '2025-10-27', 'completed', 145, 51.3],
   ['Dr. Thomas Auer — Allgemeinmedizin', '2026-01-20', 'rejected', 98],
   [
     'Therapiezentrum Sonnenweg — Physiotherapie',
@@ -78,8 +78,8 @@ export const GOLDEN = Object.freeze({
   processing: 5,
   completed: 11,
   rejected: 4,
-  knownReimbursements: 10,
-  reimbursementTotal: 492.1,
+  knownReimbursements: 11,
+  reimbursementTotal: 543.4,
 });
 export const SCENARIOS = [
   'mixed',

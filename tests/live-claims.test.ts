@@ -166,6 +166,24 @@ describe("query contracts and excluded data", () => {
     expect(JSON.stringify(value)).not.toMatch(/SECRET|transientSourceId|href/);
   });
 
+  it("get_claim returns detail invoice amount while excluding social-security and bank fields", async () => {
+    const doc = page('<h1>Einreichung Detail</h1><table><tr><th>Behandler:</th><td>Synthetic Detail</td></tr><tr><th>Rechnungsbetrag:</th><td>200,00 €</td></tr><tr><th>Sozialversicherungsnummer:</th><td>SECRET-SV</td></tr><tr><th>Erstattung auf das Konto:</th><td>SECRET-ACCOUNT</td></tr><tr><th>Bankverbindung:</th><td>SECRET-BANK</td></tr><tr><th>Ablehnungsgrund:</th><td>SECRET-REASON</td></tr></table>', "einreichungDetailOA.xhtml");
+    const snapshot = await read(doc);
+    const claimId = snapshot.claims[0]!.id;
+    const result = success(await tools(doc)("get_claim", { claimId })) as {
+      claim: Claim;
+      page: { scope: string; pageKind: string };
+    };
+
+    expect(result).toMatchObject({
+      claim: { id: claimId, provider: "Synthetic Detail", invoiceAmount: 200, status: "rejected" },
+      page: { scope: "current-page", pageKind: "open-rejected-detail" },
+    });
+    expect(result.claim).not.toHaveProperty("socialSecurityNumber");
+    expect(result.claim).not.toHaveProperty("bankAccount");
+    expect(JSON.stringify(result)).not.toMatch(/SECRET-SV|SECRET-ACCOUNT|SECRET-BANK|SECRET-REASON/);
+  });
+
   it("explicitly allowlists adapter observations before hashing and sending across the bridge", async () => {
     vi.spyOn(OegkAdapter.prototype, "extractClaims").mockResolvedValue({ state: "complete", pageKind: "results", snapshotComplete: true, diagnostics: { candidateCount: 1, skippedCount: 0 }, observations: [Object.assign({ status: "processing" as const, source: "oegk" as const, provider: "Synthetic" }, { transientSourceId: "SECRET", rawHtml: "SECRET", documentLink: "SECRET", bankAccount: "SECRET", node: document.body })] });
     const doc = page();

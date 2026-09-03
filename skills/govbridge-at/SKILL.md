@@ -37,11 +37,19 @@ on the roadmap, but is not implemented; do not invent coverage estimates.
   prompt: the user's request authorizes reading and summarizing the requested
   current-page fields. Honor any browser/platform approval that is actually
   required, and do not broaden the response beyond the requested task.
-- Before a requested read, limit inspection to the URL, capability metadata, and
-  narrowly selected structural state needed to establish the supported page.
-  Avoid full-page snapshots, raw HTML, alert dumps, or screenshots that could
-  reveal claims. If a safe structural check is unavailable, ask the user to
-  describe the state. Do not read unrelated claim fields.
+- Read only browser-provided tab URL/capability metadata, WebMCP schemas, and
+  normalized WebMCP responses. Never inspect page content: no DOM queries or
+  markers, page titles, form values, accessibility/DOM snapshots, screenshots,
+  raw HTML, network response bodies or PDFs. Do not read first and redact later.
+  This applies to both real and fictional pages and to all browser mechanisms.
+  If tool metadata cannot resolve the state, ask the user for a non-sensitive
+  confirmation rather than asking them to paste page contents.
+- CDP is only a fallback transport for WebMCP registry discovery and invocation
+  through `document.modelContext`; it is not a page-inspection or navigation
+  channel. Do not use CDP DOM, Network, Storage, Input or screenshot commands, or
+  arbitrary JavaScript. Use ordinary browser URL metadata/navigation for tab
+  selection. If that safe navigation capability is missing, ask the user to
+  open the verified URL themselves.
 - Do not file, edit, delete, or submit a reimbursement claim, open a claim detail
   page automatically, or invoke/download PDFs. The only supported submission is
   the bounded **search form** action below. Do not export or persist personal
@@ -63,8 +71,8 @@ configured; local development uses the configured loopback origin on port 4173.
 The same `dist/` extension supports production and configured demo origins:
 reload the existing unpacked extension, never request a separate development
 copy or second installation. If this configuration cannot be verified, ask for a
-verified demo target rather than inventing one. Public publication and a hosted
-download remain deferred.
+verified demo target rather than inventing one. A hosted extension download
+remains deferred; the approved demo origin is in that configuration.
 
 The demo uses the exact header `GovBridge AT: OEGK (meinesv.at) demo server`, an
 always-visible fictional-data notice, and environment provenance. It contains
@@ -72,28 +80,29 @@ always-visible fictional-data notice, and environment provenance. It contains
 values must not say `Demo` or `SYNTHETIC` except for references such as
 `SYNTHETIC-demo-claim-009`. The fixed full-fixture range is
 `2021-09-03`–`2026-09-02`, with 5 processing, 11 completed, and 4 rejected
-records, duplicate examples, date coverage, and 10 known reimbursements
-totaling EUR 492.10. Reimbursed claims have deterministic treatment periods and
+records, duplicate examples, date coverage, and 11 known reimbursements
+totaling EUR 543.40. These are fixture expectations, not a substitute for live
+WebMCP results. Reimbursed claims have deterministic treatment periods and
 plausible later reimbursement dates; open claims do not receive fabricated
-reimbursement dates. Rich fields render on list and detail pages in both
-languages. Missing values are shown with an explicit unknown label.
+reimbursement dates. Rich fields render on detail pages in both languages;
+overview rows remain compact. The explicit missing-fields scenario retains
+unknown amounts.
 
 Demo login uses only the public username `peter` and password
 `ThisIsJustADemo$`; the former `username` / `password` pair must be rejected.
 Never enter real credentials. The fixture detail page may show the requested
-synthetic person Peter, bank account `AT00 1234 1234 1234 1234`, and social
-security number `1234010196` for visual testing, but these values are never
-returned by WebMCP and must not be disclosed. Verify `page.environment` is
+synthetic identity and bank fields, but the agent must not inspect them. These
+fields are never returned by WebMCP and must not be disclosed. Verify
+`page.environment` in the tool response is
 `development` or `demo` and label results synthetic. `source: "oegk"` is only
 the adapter identifier. Do not switch origins without the user's request or
 present one environment's records as another's.
 
 The demo defaults to English and offers `English` / `Deutsch` while preserving
 search context. Switching language navigates to a new document, so rediscover
-tools and obtain new temporary IDs. On verified synthetic origins only, use the
-English semantic labels corresponding to the German production markers, while
-production remains German-only. Date controls use DD.MM.YYYY; tool inputs remain
-ISO dates in either language.
+tools and obtain new temporary IDs. Leave page-language changes to the user;
+do not inspect or manipulate language controls. The extension handles supported
+page labels. Tool inputs remain ISO dates in either language.
 
 ## Guided search
 
@@ -114,22 +123,13 @@ ISO dates in either language.
    search-mask entry point; MeineSV may redirect it to
    `/vsInfo/views/KE/einreichungTyp.xhtml`. Leave ID Austria authentication
    entirely to the user.
-3. Perform at most one minimal, route-specific preflight before invoking a
-   tool. For an entry/type search, use only the current URL, page title, exact
-   presence of the heading `Einreichungen abfragen`, and exact selected state of
-   `Wahlarzt / Wahltherapeut`. For a retained results-form search, check the
-   current URL/title, exact `Liste der Einreichungen` heading, and the retained
-   date form with its `OK` control. For a current-page summary or claim read,
-   check only the supported URL and the exact page-kind/result/detail marker;
-   do not require a type-page heading or category selection. Do not take DOM
-   snapshots, run broad text searches, inspect raw HTML, or use screenshots. Do
-   not use Playwright locators for this preflight; if no WebMCP-capable page
-   state exposes a needed type-page category and it is not already selected,
-   use one exact locator solely to select `Wahlarzt / Wahltherapeut`, then do
-   not repeat the preflight. A missing or ambiguous route-specific marker is a
-   wrong-page blocker.
-4. Prefer the browser's native WebMCP tool surface and page navigation
-   exclusively. Inspect callable tools and their live schemas there; hints,
+3. Use the tab's supported URL and browser capabilities as the only preflight.
+   Do not inspect page headings, selected tabs, form fields or result markers.
+   The extension validates those locally. If category selection is needed, ask
+   the user to select “Wahlarzt / Wahltherapeut” (Private doctor / therapist)
+   and confirm readiness. Do not use locators or CDP to select it yourself.
+4. Prefer the browser's native WebMCP tool surface; use only the restricted CDP
+   fallback below when unavailable. Inspect callable tools and their live schemas; hints,
    diagnostics, and static metadata do not prove callability. Make one standard
    discovery call per document, await `getTools()` before processing its array,
    and rediscover only after navigation or a material registry change:
@@ -146,10 +146,12 @@ ISO dates in either language.
    `map()`/stringification probe loops. The type/range page must expose
    `search_claims` with exactly required `from` and `to` ISO-date fields before
    proceeding.
-5. Use CDP only when the browser advertises CDP but does not advertise native
-   WebMCP, and only to inspect or invoke `document.modelContext`. Do not use CDP
-   for snapshots, broad DOM inspection, or custom form automation. If neither
-   native WebMCP nor CDP is advertised, report the missing capability.
+5. Use CDP only when native WebMCP access is unavailable and the browser
+   advertises supported CDP. Limit evaluation to the `document.modelContext`
+   discovery/invocation above, awaiting and returning the registry or tool
+   response. Do not append page reads, including `location`, titles or DOM
+   checks, to the expression. If neither tool access path is available, report
+   the blocker without scraping, fetching URLs, or accessing extension storage.
 6. Once `search_claims({from, to})` is exposed with the expected schema, invoke
    it directly once through that tool surface; the explicit website-search
    request authorizes the bounded action. The extension sets the actual website
@@ -161,32 +163,26 @@ ISO dates in either language.
 7. Treat `{ok:true,data:{status:"submission_requested"}}` as **dispatch
    requested**, not successful results or refreshed server data. Navigation can
    legitimately return `null` or destroy the execution context. Verify the
-   resulting page by navigation state and narrowly selected known result or
-   validation markers only; do not repeat the preflight or resubmit after
+   resulting state through tab URL metadata and rediscovered WebMCP query
+   responses only; a changed URL alone is not search success. Do not resubmit after
    `null`, a timeout, lost context, or `SEARCH_IN_PROGRESS`. Explain uncertainty
    and obtain the user's direction before retrying. Cancellation cannot undo a
    dispatched click.
-8. Confirm website state before interpreting tool results. The result route is
-   `/vsInfo/views/KE/einreichungListe.xhtml`, headed `Liste der Einreichungen`;
-   recognized groups are `offene Einreichungen`, `abgelehnte Einreichungen`, and
-   `erstattete Einreichungen`. A documented empty-state alert contains `In
-   diesem Abfragezeitraum wurde keine Kostenerstattung bzw. kein Onlineantrag
-   gefunden.` A validation alert headed `ACHTUNG: Fehlerhafte Eingaben im
-   Formular` is an error, not empty results. On the English demo, use the
-   localized equivalents. Read only those known, exact state markers before
-   reading claim results; never use broad page text as a substitute. Login, loading,
-   unfamiliar, partial, or ambiguous state does not establish successful search
-   or completeness.
-9. An explicit empty-result alert can appear after full navigation back to the
-   type/range route. This is a live-verified empty success; remaining on that
-   route alone does not establish failure. The live reader recognizes this alert
-   as an empty success. No earlier search records are retained or merged.
+8. Interpret only WebMCP envelopes and `data.page` metadata. A successful
+   current-page query supplies the readable results and their completeness;
+   tool errors describe unsupported, loading or extraction states. Do not
+   inspect the page to supplement an error. Missing tools on a login route mean
+   the user may need to sign in; do not inspect the login page.
+9. The extension recognizes explicit empty-result alerts, including on the
+   type/range route, and returns an empty success. Rely on that response, not
+   on reading alerts or inferring emptiness from the URL. No earlier records
+   are retained or merged.
 10. Invoke only the requested query tools. Related WebMCP operations do not
     require an additional skill prompt: read and summarize only the normalized
     current-page data needed for the user's request. Each query extracts the
     current page anew but does not refresh server data. Rediscover tools after
-    navigation. If `PAGE_NOT_READY` is returned, allow one bounded check of the
-    known loading/outcome state and one read retry; never rerun the search
+    navigation. If `PAGE_NOT_READY` is returned, allow one bounded wait and one
+    query-tool retry without inspecting the page; never rerun the search
     automatically. Report an uncertain outcome if it remains unresolved.
 
 ## Missing browser capabilities
@@ -203,10 +199,10 @@ ISO dates in either language.
   cannot invoke page tools. `pageAssets`, DOM hints, snapshots, and broad text
   searches are insufficient. Ask the user to connect the supported browser
   integration; do not modify browser security settings silently.
-- On wrong-page or unavailable-form errors, navigate back to the verified
-  selected query form rather than broadening selectors or submitting another
-  category. Explain unsupported layout if the expected controls still cannot be
-  confirmed.
+- On wrong-page or unavailable-form errors, ask the user to open the supported
+  search page and select the category, or navigate to its verified entry URL
+  through ordinary browser navigation. Never inspect controls to diagnose it.
+  Explain the tool error and ask for non-sensitive readiness confirmation.
 
 ## Query tools and interpretation
 
@@ -221,7 +217,7 @@ Use the live schemas. The current query contract has three read-only tools:
 All three query tools return the same normalized Claim shape. The extension's
 live reader reads row-scoped visible labeled fields on results and the existing
 detail table when present; the agent consumes only the normalized tool response
-and never scrapes or navigates. The reader never fetches a detail page, persists
+and never scrapes or navigates to claim details. The reader never fetches a detail page, persists
 data, or enriches a current read from a previous call. When displayed and
 parseable, preserve `provider`,
 `invoiceAmount`, `treatmentDate`, `treatmentEndDate` (the treatment period),
@@ -240,6 +236,16 @@ an already-open detail page. Do not navigate or fetch details to fill gaps in an
 overview response. The demo's unlabelled left-hand overview date is a fictional
 display value, not a verified claim event date; it is intentionally not returned
 as a canonical date by the tools.
+
+`get_claim` includes `invoiceAmount` when available on the current detail page.
+If it is absent on an overview, explain the scope limit and ask the user to open
+the desired detail page. Then use `list_claims` to obtain that document's fresh
+ID and invoke `get_claim`; never reuse the overview ID or read the detail DOM.
+
+When explaining the privacy advantage, say that local extension parsing exposes
+only the allowed normalized fields to the agent, keeping social security and
+bank fields out of its input. The skill forbids whole-page reads; it does not
+make CDP technically incapable of them or isolate data from host-page scripts.
 
 Successful queries use `{ok:true,data:...}`; failures use
 `{ok:false,error:{code,message}}`. Respect `INVALID_INPUT`, `NOT_FOUND`,

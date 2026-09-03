@@ -42,7 +42,7 @@ extension registration and rendered-DOM extraction, not a second tool backend.
 It contains exactly 20 independently invented claims with the fixed
 demonstration range `2021-09-03`–`2026-09-02` (reference date `2026-09-02`),
 with 5 processing, 11 completed, and 4 rejected records, duplicate examples,
-date coverage, and 10 known reimbursements totaling EUR 492.10. Claim values
+date coverage, and 11 known reimbursements totaling EUR 543.40. Claim values
 use natural-looking practice names;
 they do not contain `Demo` or `SYNTHETIC` except for references such as
 `SYNTHETIC-demo-claim-009`.

@@ -53,10 +53,10 @@ describe('synthetic data', () => {
       );
     expect(
       CLAIMS.filter((r) => r.reimbursementAmount !== undefined),
-    ).toHaveLength(10);
+    ).toHaveLength(11);
     expect(
       CLAIMS.reduce((s, r) => s + (r.reimbursementAmount ?? 0), 0),
-    ).toBeCloseTo(492.1);
+    ).toBeCloseTo(543.4);
   });
   it('has four records per fixed rolling year', () => {
     for (let y = 2021; y <= 2025; y++)

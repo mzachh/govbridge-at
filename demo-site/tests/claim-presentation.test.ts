@@ -44,8 +44,8 @@ describe('natural fictional claim presentation', () => {
       expect(
         html.match(/class="document-unavailable" type="button" disabled/g),
       ).toHaveLength(11);
-      expect(html.match(/class="badge"/g)).toHaveLength(10);
-      expect(html.match(/>↪ \d+\.\d{2} €<\/span>/g)).toHaveLength(10);
+      expect(html.match(/class="badge"/g)).toHaveLength(11);
+      expect(html.match(/>↪ \d+\.\d{2} €<\/span>/g)).toHaveLength(11);
       expect(html).not.toMatch(/>Reimbursement:|>Rückerstattung:/);
       expect(html.match(/data-fixture=/g)).toHaveLength(20);
       for (const label of lang === 'en'
@@ -100,6 +100,18 @@ describe('natural fictional claim presentation', () => {
         detail(CLAIMS[0]!, { ...context, scenario: 'missing-fields' }),
       ),
     ).toContain('<th scope="row">Reimbursement amount:</th><td>Unknown</td>');
+  });
+
+  it.each(['en', 'de'] as const)('renders claim 017 reimbursement in %s', (lang) => {
+    const claim = CLAIMS.find(({ id }) => id === 'demo-claim-017')!;
+    expect(claim.invoiceAmount).toBe(145);
+    expect(claim.reimbursementAmount).toBe(51.3);
+    const html = localizeHtml(detail(claim, context), lang);
+    expect(html).toContain('<td>51,30 €</td>');
+    expect(html).toContain('<td>145,00 €</td>');
+    expect(localizeHtml(results(context), lang)).toContain('↪ 51.30 €');
+    expect(localizeHtml(detail(claim, { ...context, scenario: 'missing-fields' }), lang))
+      .not.toContain('<td>51,30 €</td>');
   });
 
   it('displays exactly the new public credential pair', () => {
