@@ -145,7 +145,9 @@ The UI receives canonical `Claim[]`, storage/extraction state, and derived
 summary values from generic application logic. It does not inspect the OEGK DOM
 or parse source labels.
 
-Example content, not a pixel-level design contract:
+Example content, not a pixel-level design contract. The provider name,
+dates, and amounts below are invented synthetic values for layout guidance,
+not observations from a real account:
 
 ```text
 GovBridge AT
