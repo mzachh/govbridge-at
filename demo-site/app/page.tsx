@@ -96,15 +96,21 @@ export default async function Home({
               {t('02 · Add the extension', '02 · Erweiterung hinzufügen')}
             </h2>
             <p>
+              <a href="https://github.com/mzachh/govbridge-at/raw/refs/heads/main/downloads/govbridge-at-0.1.0.zip">
+                {t('Download GovBridge AT', 'GovBridge AT herunterladen')}
+              </a>{' '}
+              {t('and unzip it.', 'und die ZIP-Datei entpacken.')}
+            </p>
+            <p>
               {t(
-                'In external Chrome, open chrome://extensions, enable Developer mode, then load the unpacked GovBridge AT build.',
-                'Öffnen Sie chrome://extensions in externem Chrome, aktivieren Sie den Entwicklermodus und laden Sie GovBridge AT als entpackte Erweiterung.',
+                'In external Chrome, open chrome://extensions, enable Developer mode, click Load unpacked, and select the extracted folder containing manifest.json.',
+                'Öffnen Sie chrome://extensions in externem Chrome, aktivieren Sie den Entwicklermodus, klicken Sie auf Entpackte Erweiterung laden und wählen Sie den entpackten Ordner mit manifest.json aus.',
               )}
             </p>
             <p>
               {t(
-                'Use the existing dist extension folder for both MeineSV and this demo. Public release remains deferred until verification is complete.',
-                'Verwenden Sie den bestehenden dist-Ordner für MeineSV und diese Demo. Die Veröffentlichung bleibt bis zum Abschluss der Überprüfung ausgesetzt.',
+                'The same extension supports both MeineSV and this demo. No build is needed.',
+                'Dieselbe Erweiterung unterstützt MeineSV und diese Demo. Ein Build ist nicht erforderlich.',
               )}
             </p>
           </section>
