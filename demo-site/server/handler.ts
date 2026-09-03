@@ -170,11 +170,14 @@ async function handleRequest(
           'page',
           'claim',
           'lang',
+          ...(u.pathname === TYPE ? ['searched'] : []),
           ...(u.pathname === BASE ? ['contentid', 'portal', 'LO'] : []),
         ].includes(k),
     )
   )
     return new Response('Unknown query key', { status: 400, headers });
+  if (u.searchParams.has('searched') && u.searchParams.get('searched') !== '1')
+    return new Response('Invalid search marker', { status: 400, headers });
   const selected = scenario(u.searchParams.get('scenario'));
   if (!selected)
     return new Response('Unknown scenario', { status: 400, headers });
@@ -216,17 +219,23 @@ async function handleRequest(
     const none = !CLAIMS.some(
       (r) => r.invoiceDate >= start && r.invoiceDate <= end,
     );
+    const target =
+      selected === 'empty-type' || (none && selected !== 'empty-results')
+        ? TYPE
+        : LIST;
     return redirect(
-      (selected === 'empty-type' || none ? TYPE : LIST) +
+      target +
         '?' +
         new URLSearchParams({
-          scenario: none ? 'empty-type' : selected,
+          scenario: selected,
           from: start,
           to: end,
+          ...(target === TYPE ? { searched: '1' } : {}),
         }),
     );
   }
-  if (u.pathname === TYPE) return html(typePage(c));
+  if (u.pathname === TYPE)
+    return html(typePage(c, false, undefined, u.searchParams.has('searched')));
   if (u.pathname === LIST) return html(results(c));
   const claim = CLAIMS.find((r) => r.id === u.searchParams.get('claim'));
   if (!claim || (u.pathname === DETAIL) !== (claim.status === 'completed'))

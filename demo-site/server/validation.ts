@@ -48,6 +48,7 @@ export function safeReturn(value: string | null): string {
   const p = new URLSearchParams();
   for (const [k, v] of u.searchParams) {
     if (k === 'lang' && (v === 'en' || v === 'de')) p.set(k, v);
+    if (k === 'searched' && v === '1' && u.pathname === TYPE) p.set(k, v);
     if (k === 'scenario' && scenario(v) && v !== 'expired-session') p.set(k, v);
     if ((k === 'from' || k === 'to') && isoDate(v)) p.set(k, v);
     if (k === 'page' && /^[12]$/.test(v)) p.set(k, v);

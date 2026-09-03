@@ -52,3 +52,25 @@ Public access and fixture redistribution license need explicit approval before
 release. Never publish Sites credentials, session secrets, private reference
 captures, real claims or unrelated parent source. Keep a verification report of
 automated, browser, WebMCP and visual checks; mark unverified behaviors honestly.
+
+## Search recovery clarification (2026-09-03)
+
+Natural empty results must not select the developer-only `empty-type` scenario.
+The selected scenario remains unchanged across search submissions. A successful
+search with no matching invoice dates may redirect to the type/range page with
+`searched=1`; this bounded flag distinguishes a completed search from an untouched
+search mask. Render natural emptiness from the current range, not from this flag
+alone. Accept only `searched=1` on the type/range route, preserve it across login
+and language switching, and omit it from the next form action so each submission
+recomputes its outcome. Validation errors take precedence over empty results.
+
+Explicit developer scenarios remain separate: `empty-type` stays empty on the
+type/range page and `empty-results` stays empty on the results page. Existing
+AJAX scenarios retain their scenario and dispatch behavior. Old URLs explicitly
+containing `scenario=empty-type` remain forced scenarios; reopen the normal query
+page to leave that scenario.
+
+Regression verification must cover 12 results → no matches → 12 results, starting
+from both query and results forms in English and German, plus untouched masks,
+forced scenarios, invalid flags, validation precedence and language/login return
+context. No extension code or downloadable ZIP changes are required.

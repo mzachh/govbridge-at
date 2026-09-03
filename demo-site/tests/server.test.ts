@@ -183,7 +183,8 @@ describe('HTTP compatibility', () => {
       session: true,
       post: { vonDatWAH: '01.08.2026', bisDatWAH: '01.08.2026' },
     });
-    expect(r.headers.get('location')).toContain('scenario=empty-type');
+    expect(r.headers.get('location')).toContain('scenario=mixed');
+    expect(r.headers.get('location')).toContain('searched=1');
     const html = await (
       await req(r.headers.get('location')!, { session: true })
     ).text();

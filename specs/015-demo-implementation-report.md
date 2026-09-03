@@ -10,6 +10,56 @@ remain as historical evidence of their individual test runs, not current blocker
 This documentation correction records the user's confirmation; it does not claim
 a new automated test run or browser verification by the assistant.
 
+## 2026-09-03 empty-search recovery (deployed)
+
+- A natural no-match search no longer changes the selected scenario to the
+  developer-only `empty-type` scenario. A bounded `searched=1` marker preserves
+  the empty type-page outcome across reloads, language switches and login return.
+  The next form submission recomputes results. Explicit forced-empty scenarios
+  remain available; reopen the normal query route to leave an older forced URL.
+- Verification passed: 152 extension tests and 53 demo tests (205 total), both
+  typechecks/builds and the extension package audit. New regressions cover
+  12 → 0 → 12 recovery in English and German, a reloaded empty type page,
+  validation precedence, marker bounds and deliberate empty scenarios.
+  Independent read-only review found no blocking issues. AJAX tests cover server
+  responses, not a new browser AJAX execution.
+- With user approval, Sites version 4 deployed successfully from source commit
+  `8138b09a50d59a8f62fcbcf8c611f75819335854`, deployment
+  `appgdep_6a9987637e6c8191ab6170e72dad4afd`. Public access, login and the extension
+  ZIP are unchanged. Parent GitHub changes have not been committed or pushed.
+- Post-deployment Chrome discovery confirmed all four WebMCP tools. The first
+  hosted search attempt returned `FORM_UNAVAILABLE` without submitting. Sites
+  subsequently returned its own HTTP 404 "Site not found" page, and its management
+  connector also returned transport-level HTTP 404 errors. The earlier deployment
+  success did not establish public availability during that outage. Hosted WebMCP
+  search recovery was not verified during that attempt.
+- Local verification completed in external Chrome at 14:48 UTC on 2026-09-03,
+  after user-operated login. Actual `search_claims` and `list_claims` calls
+  confirmed 12 results for 2023-09-04–2026-09-03, zero for 2026-09-03 alone,
+  then 12 again for the original range. All three responses reported complete
+  current-page extraction, zero skipped rows and the development environment.
+  `get_open_claims` returned four claims and `get_claim` succeeded with a current
+  snapshot ID. CDP was used only for WebMCP discovery/invocation; no browser page
+  content was inspected or claim records saved. The local HTTP smoke and all 17
+  focused search-recovery tests also passed. This confirms local browser recovery,
+  not hosted availability or a fresh extension installation.
+- At 15:22 UTC on 2026-09-03, the Sites connection recovered and the same verified
+  version 4 was redeployed successfully, deployment
+  `appgdep_6a9990c900348191ad65cb0bb3cb39ad`. Independent unauthenticated HTTPS
+  checks returned HTTP 200 for both `/` and `/login`. The public availability
+  blocker is resolved; these checks do not claim a hosted WebMCP search run.
+- Hosted WebMCP verification completed at 15:28 UTC on 2026-09-03 after
+  user-operated login in external Chrome. `search_claims` and `list_claims`
+  confirmed the same 12 → 0 → 12 sequence for 2023-09-04–2026-09-03 and the
+  no-match day 2026-09-03. Each read reported `environment: demo`, complete
+  extraction and zero skipped rows. The empty response retained `scenario=mixed`
+  with `searched=1`; recovery returned to the results route without that marker.
+  `get_open_claims` returned four claims and `get_claim` succeeded with a current
+  snapshot ID. All four tools were invoked successfully through WebMCP over CDP.
+  Only structural evidence is recorded here; no page-content inspection, raw claim
+  records, credentials or screenshots were retained. Hosted search recovery is
+  now verified, resolving the earlier live-test deferral.
+
 ## 2026-09-03 privacy and fixture correction (deployed)
 
 - Spec 019 adds EUR 51.30 to fictional claim 017; default reimbursement total

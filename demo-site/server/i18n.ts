@@ -145,6 +145,10 @@ export function withLanguage(path: string, lang: Language): string {
         'contentid',
         'portal',
         'LO',
+        ...(u.pathname === '/vsInfo/views/KE/einreichungTyp.xhtml' &&
+        u.searchParams.get('searched') === '1'
+          ? ['searched']
+          : []),
       ].includes(key)
     )
       u.searchParams.delete(key);

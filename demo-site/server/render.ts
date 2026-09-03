@@ -66,10 +66,13 @@ export function typePage(
   c: Context,
   invalid = false,
   raw?: { from: string; to: string },
+  searched = false,
 ): string {
+  const noMatches =
+    c.scenario === 'empty-type' || (searched && selectedClaims(c).length === 0);
   return shell(
     'Einreichungen abfragen',
-    `<p>Wählen Sie die Art der Rechnung und den gewünschten Abfragezeitraum.</p>${form(c, true, raw)}${invalid || c.scenario === 'validation' ? error : c.scenario === 'empty-type' ? empty : ''}${controls(c)}`,
+    `<p>Wählen Sie die Art der Rechnung und den gewünschten Abfragezeitraum.</p>${form(c, true, raw)}${invalid || c.scenario === 'validation' ? error : noMatches ? empty : ''}${controls(c)}`,
   );
 }
 export function invalidResults(
