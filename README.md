@@ -24,13 +24,18 @@ current specifications.
 
 ### What you need
 
-- Node.js 22.13 or newer to build the extension and run the optional local
-  demo server (the hosted demo needs no Node)
+- Node.js 22.13 or newer only if building from source or running the local
+  demo server (the prebuilt extension and hosted demo need no Node)
 - Google Chrome
 - An agent that can reach a Chrome tab. We tested with the ChatGPT desktop app
   connected to Chrome through its browser extension.
 
-### 1. Build the extension
+### 1. Download or build the extension
+
+Download [GovBridge AT 0.1.0](https://github.com/mzachh/govbridge-at/raw/refs/heads/main/downloads/govbridge-at-0.1.0.zip)
+and unzip it. No build is needed.
+
+Or build from source:
 
 ```sh
 npm install
@@ -44,7 +49,8 @@ This produces the unpacked extension in `dist/`. To also run the full checks
 
 1. Open `chrome://extensions`
 2. Enable Developer mode (top right)
-3. Click "Load unpacked" and select the `dist/` directory
+3. Click "Load unpacked" and select the extracted folder containing
+   `manifest.json` (or `dist/` if you built from source)
 
 One build supports production (`www.meinesv.at`), the hosted demo, and the
 local demo origin.
